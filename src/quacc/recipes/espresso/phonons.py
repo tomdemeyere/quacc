@@ -4,8 +4,6 @@ from __future__ import annotations
 from functools import partial
 from typing import TYPE_CHECKING
 
-from ase import Atoms
-
 from quacc import Job, flow, job
 from quacc.calculators.espresso.espresso import EspressoTemplate
 from quacc.calculators.espresso.utils import parse_ph_patterns
@@ -33,7 +31,6 @@ def phonon_job(
         The name of a YAML file containing a list of parameters to use as
         a "preset" for the calculator. quacc will automatically look in the
         `ESPRESSO_PRESET_DIR` (default: quacc/calculators/espresso/presets).
-
     copy_files
         List of files to copy to the calculation directory. Almost always needed
         for ph.x calculations. This parameter can either be a string or a list of
@@ -41,16 +38,16 @@ def phonon_job(
 
         If a string is provided, it is assumed to be a path to a directory,
         all of the child tree structure of that directory is going to be copied to the
-        scratch of this calculation. For ph_job this is what most users will want to do.
+        scratch of this calculation. For phonon_job this is what most users will want to do.
 
         If a list of strings is provided, each string point to a specific file. In this case
         it is important to note that no directory structure is going to be copied, everything
-        is copied at the root of the scratch directory.
-
+        is copied at the root of the temporary directory.
     parallel_info
         Dictionary containing information about the parallelization of the
         calculation. See the ASE documentation for more information.
-
+    test_run
+        Whether to run the calculation in test mode. This is useful for quickly testing or to generate patterns.
     **calc_kwargs
         calc_kwargs dictionary possibly containing the following keys:
 
@@ -58,8 +55,7 @@ def phonon_job(
         - qpts: list[list[float]] | list[tuple[float]] | list[float]
         - nat_todo: list[int]
 
-        See the docstring of quacc.calculators.espresso.io.write_espresso_ph for more
-        information.
+        See the docstring of [quacc.calculators.espresso.io.write_espresso_ph][] for more information.
 
     Returns
     -------
@@ -79,23 +75,19 @@ def phonon_job(
         "qpts": (0, 0, 0),
     }
 
-    template = EspressoTemplate("ph", test_run=test_run)
-
     return base_fn(
-        Atoms(),
         preset=preset,
-        template=template,
+        template=EspressoTemplate("ph", test_run=test_run),
         calc_defaults=calc_defaults,
         calc_swaps=calc_kwargs,
         parallel_info=parallel_info,
-        additional_fields={"name": "ph.x static"},
+        additional_fields={"name": "ph.x Phonon"},
         copy_files=copy_files,
     )
 
 
 @flow
 def grid_phonon(pw_job: Job = static_job, phonon_job: Job = phonon_job):
-
     # We run a first pw job (single point or relax) depending on the input
     pw_job_results = pw_job()
 
