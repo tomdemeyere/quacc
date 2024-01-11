@@ -93,46 +93,65 @@ def grid_phonon_flow(
     job_params: dict[str, Any] | None = None,
 ) -> RunSchema:
     """
-    This function performs grid parallelization of a ph.x calculation. Each
-    representation of each q-point is calculated in a separate job, allowing
-    for distributed computation across different machines and times.
+    This function performs grid parallelization of a ph.x calculation. The grid \
+    parallelization is a technique to make phonon calculation embarrassingly
+    parallel. Each representation of each q-point is calculated in a separate job,
+    allowing for distributed computation across different machines and times.
+    This function should return similar results to [quacc.recipes.espresso.phonons.phonon_job][]
+    for similiar system and settings. If you don't know about grid parallelization please consult
+    the Quantum Espresso user manual and exemples.
 
-    The grid parallelization is a technique to make phonon calculation embarrassingly
-    parallel. This function should return similar results to
-    [quacc.recipes.espresso.phonons.phonon_job][]. If you don't know about
-    grid parallelization please consult the Quantum Espresso user manual and
-    exemples.
+    Instructions for the impatient
+    ------------------------------
+    If you never used the Espresso interface for quacc please visit []
+    
+    Unless you have specific needs, this flow only requires to change the parameters
+    of the "ph_job" in job_params. For more information about job_decorators and job_params
+    please visit []
 
-    This approach requires the data of the pw.x calculation to be copied to each job,
-    leading to a total data size on the disk of n*m times the size of the pw.x calculation, where:
-    - n is the number of q-points
-    - m is the number of representations
+    One simple example:
 
-    In addition to the data produced by each ph.x calculation. This can
-    result in large data sizes for systems with many atoms.
+    ``` python
+    from quacc.recipes.espresso.phonons import grid_phonon_flow
 
-    To mitigate this, an optional "nblocks" argument can be provided. This
-    groups multiple representations together in a single job, reducing the
-    data size by a factor of nblocks, but also reducing the level of parallelization.
-    In the case of nblocks = 0, each job will contain all the representations for each q-point.
+    grid_flow_params = {"ph_job": {"input_data": {"ldisp": True, "nq1": 8, "nq2": 8, "nq3": 8}}}
+    grid_phonon_flow(atoms=ase.build.bulk('Pt'), job_params=grid_flow_params)
+    ```
+    **Do not change the "lqdir", "recover" and "low_directory_check" keywords if you don't
+    have a very good reason.**
 
-    WARNING: Using the ph.x gamma trick is only partially supported by this function.
-    The gamma trick will lead to explicit calculations for each mode. If some of them
-    can be calculated using symmetry a full job will still be dispatched. This is
-    will become a problem if you system is large: you will dispatch large HPC calculations
-    for nothing. This can be tempered by setting a large or zero nblocks value.
+    Disk space management
+    ---------------------
+    By default this function is set to maximum disk space for performance trade-off.
+    Calculated properties during the 'only_init' phase will be copied to each
+    representation. This is approximatively twice the space taken by pw.x
+    for each representation.
 
-    Consists of following jobs that can be modified:
+    To mitigate this, two options:
+
+    - The "nblocks" parametrer can be provided. Multiple representations will be then
+    grouped together in single job, this reduces parallelization level, but will use
+    less space accordingly.
+
+    - A much less desirable options is to modify the _grid_phonon_subflow to avoid copying
+    the ph.x calculated band-structures. This will be horribly inefficient since the electric-part
+    + the band structure will have to be recomputed for each job, but will halve disk space usage.
+
+    Example: pw.x: 20 GB, 120 representations will lead to: 20*2*120 = 4.8 TB. Using nblocks = 3
+    will lead to a division by a factor of 3: 20*2*120/3 = 1.6TB
+
+    Jobs
+    ----
 
     1. pw.x relaxation
         - name: "relax_job"
         - job: [quacc.recipes.espresso.core.relax_job][]
 
-    2. ph.x calculation test_run
+    2. ph.x initialization phase.
         - name: "ph_init_job"
         - job: [quacc.recipes.espresso.phonons.phonon_job][]
 
-    3. (n * m) / nblocks ph.x calculations
+    3. Core ph.x calculations
         - name: "ph_job"
         - job: [quacc.recipes.espresso.phonons.phonon_job][]
 
@@ -150,7 +169,7 @@ def grid_phonon_flow(
         If nblocks = 0, each job will contain all the representations for a
         single q-point.
     job_params
-        Custom parameters to pass to each Job in the Flow. This is a dictinoary where
+        Custom parameters to pass to each Job in the Flow. This is a dictionary where
         the keys are the names of the jobs and the values are dictionaries of parameters.
     job_decorators
         Custom decorators to apply to each Job in the Flow. This is a dictionary where
