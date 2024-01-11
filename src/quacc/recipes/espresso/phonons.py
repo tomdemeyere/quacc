@@ -93,7 +93,7 @@ def grid_phonon_flow(
     job_params: dict[str, Any] | None = None,
 ) -> RunSchema:
     """
-    This function performs grid parallelization of a ph.x calculation. The grid \
+    This function performs grid parallelization of a ph.x calculation. The grid
     parallelization is a technique to make phonon calculation embarrassingly
     parallel. Each representation of each q-point is calculated in a separate job,
     allowing for distributed computation across different machines and times.
@@ -122,8 +122,8 @@ def grid_phonon_flow(
 
     Disk space management
     ---------------------
-    By default this function is set to maximum disk space for performance trade-off.
-    Calculated properties during the 'only_init' phase will be copied to each
+    By default this flow is set to use maximum disk space for performance trade-off.
+    Calculated properties during the initialization phase will be copied to each
     representation. This is approximatively twice the space taken by pw.x
     for each representation.
 
@@ -142,7 +142,6 @@ def grid_phonon_flow(
 
     Jobs
     ----
-
     1. pw.x relaxation
         - name: "relax_job"
         - job: [quacc.recipes.espresso.core.relax_job][]
