@@ -291,17 +291,17 @@ def run_neb(
     optimizer_kwargs["trajectory"] = traj_filename
 
     # Run calculation
-    with (
-        neb_class(
+    neb = neb_class(
             images,
             force_job=force_job,
             force_job_params=force_job_kwargs,
             autorestart_params=autorestart_kwargs,
             **neb_kwargs,
-        ) as neb,
-        optimizer(neb, **optimizer_kwargs) as dyn,
-    ):
-        dyn.run(**run_kwargs)
+        )
+        
+    dyn = optimizer(neb, **optimizer_kwargs)
+    
+    dyn.run(**run_kwargs)
 
     # Store the trajectory atoms
     dyn.traj_atoms = read(traj_filename, index=":")
