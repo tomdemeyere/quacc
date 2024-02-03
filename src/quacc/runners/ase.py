@@ -287,7 +287,7 @@ def run_neb(
     neb_class = neb_kwargs.pop("class")
 
     # Define the Trajectory object
-    traj_filename = tmpdir / "neb.traj"
+    traj_filename = str(tmpdir / "neb.traj")
     optimizer_kwargs["trajectory"] = traj_filename
 
     # Run calculation
