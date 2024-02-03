@@ -1,9 +1,11 @@
 """Aliases for type hinting `quacc.schemas.ase`"""
+
 from __future__ import annotations
 
 from typing import Any, TypedDict
 
 from ase.atoms import Atoms
+from ase.utils.forcecurve import ForceFit
 from numpy.typing import NDArray
 
 from quacc.schemas._aliases.atoms import AtomsSchema
@@ -30,6 +32,22 @@ class OptSchema(RunSchema):
     parameters_opt: dict[str, Any]  # from Optimizer.todict()
     converged: bool
     nsteps: int
+    trajectory: list[Atoms]
+    trajectory_results: list[results]
+
+
+class NebSchema:
+    """Schema for `quacc.schemas.ase.summarize_opt_run`"""
+
+    images_info: list[RunSchema]
+    fmax: float | None
+    barrier: float | None
+    fit_images: ForceFit | None
+    parameters_opt: dict[str, Any]  # from Optimizer.todict()
+    parameters_neb: dict[str, Any]
+    converged: bool
+    nsteps: int
+    nimages: int
     trajectory: list[Atoms]
     trajectory_results: list[results]
 

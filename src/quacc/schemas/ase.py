@@ -1,4 +1,5 @@
 """Schemas for storing ASE-based data."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -6,6 +7,8 @@ from typing import TYPE_CHECKING
 import numpy as np
 from ase import units
 from ase.io import read
+from ase.mep.neb import NEBTools
+from ase.utils.forcecurve import fit_images
 from ase.vibrations.data import VibrationsData
 
 from quacc import SETTINGS, __version__
@@ -21,12 +24,14 @@ if TYPE_CHECKING:
 
     from ase.atoms import Atoms
     from ase.io import Trajectory
+    from ase.mep.neb import BaseNEB
     from ase.optimize.optimize import Optimizer
     from ase.thermochemistry import IdealGasThermo
     from ase.vibrations import Vibrations
     from maggma.core import Store
 
     from quacc.schemas._aliases.ase import (
+        NebSchema,
         OptSchema,
         RunSchema,
         ThermoSchema,
@@ -208,6 +213,127 @@ def summarize_opt_run(
         "parameters_opt": parameters_opt,
         "converged": is_converged,
         "nsteps": dyn.get_number_of_steps(),
+        "trajectory": trajectory,
+        "trajectory_results": [atoms.calc.results for atoms in trajectory],
+    }
+
+    # Create a dictionary of the inputs/outputs
+    unsorted_task_doc = recursive_dict_merge(
+        base_task_doc, opt_fields, additional_fields
+    )
+    task_doc = clean_task_doc(unsorted_task_doc)
+
+    if store:
+        results_to_db(store, task_doc)
+
+    return task_doc
+
+
+def summarize_neb_run(
+    neb: BaseNEB,
+    dyn: Optimizer,
+    trajectory: Trajectory | list[Atoms] = None,
+    check_convergence: bool | None = None,
+    charge_and_multiplicity: list[tuple[int, int]] | None = None,
+    move_magmoms: bool = True,
+    additional_fields: dict[str, Any] | None = None,
+    store: Store | bool | None = None,
+) -> NebSchema:
+    """
+    Get tabulated results from an ASE Atoms trajectory and store them in a database-
+    friendly format. This is meant to be compatible with all calculator types.
+
+    Parameters
+    ----------
+    dyn
+        ASE Optimizer object.
+    trajectory
+        ASE Trajectory object or list[Atoms] from reading a trajectory file. If
+        None, the trajectory must be found in dyn.traj_atoms.
+    check_convergence
+        Whether to check the convergence of the calculation. Defaults to True in
+        settings.
+    charge_and_multiplicity
+        Charge and spin multiplicity of the Atoms object, only used for Molecule
+        metadata.
+    move_magmoms
+        Whether to move the final magmoms of the original Atoms object to the
+        initial magmoms of the returned Atoms object.
+    additional_fields
+        Additional fields to add to the task document.
+    store
+        Maggma Store object to store the results in. If None,
+        `SETTINGS.PRIMARY_STORE` will be used.
+
+    Returns
+    -------
+    OptSchema
+        Dictionary representation of the task document
+    """
+
+    check_convergence = (
+        SETTINGS.CHECK_CONVERGENCE if check_convergence is None else check_convergence
+    )
+    additional_fields = additional_fields or {}
+    store = SETTINGS.PRIMARY_STORE if store is None else store
+
+    # Get trajectory
+    if not trajectory:
+        trajectory = (
+            dyn.traj_atoms
+            if hasattr(dyn, "traj_atoms")
+            else read(dyn.trajectory.filename, index=":")
+        )
+
+    initial_images = neb.initial_images
+    final_images = neb.images
+    directory = neb.directory
+
+    # Check convergence
+    is_converged = dyn.converged()
+    if check_convergence and not is_converged:
+        msg = f"Optimization did not converge. Refer to {directory}"
+        raise RuntimeError(msg)
+
+    # Base task doc
+
+    base_task_doc = {"images_info": []}
+
+    if charge_and_multiplicity is None:
+        charge_and_multiplicity = [None] * len(initial_images)
+
+    # This will not work for AutoNEB since the number of images change.
+    for initial_atoms, final_atoms, chg_mult in zip(
+        initial_images, final_images, charge_and_multiplicity
+    ):
+        base_task_doc["images_info"].append(
+            summarize_run(
+                final_atoms,
+                initial_atoms,
+                charge_and_multiplicity=chg_mult,
+                move_magmoms=move_magmoms,
+                store=False,
+            )
+        )
+
+    # Clean up the opt parameters
+    parameters_opt = dyn.todict()
+    parameters_opt.pop("logfile", None)
+    parameters_opt.pop("restart", None)
+
+    parameters_neb = neb.todict()
+
+    analysis = NEBTools(final_images)
+
+    opt_fields = {
+        "fmax": analysis.get_fmax(),
+        "barrier": analysis.get_barrier(),
+        "fit_images": fit_images(final_images),
+        "parameters_opt": parameters_opt,
+        "parameters_neb": parameters_neb,
+        "converged": is_converged,
+        "nsteps": dyn.get_number_of_steps(),
+        "nimages": neb.nimages,
         "trajectory": trajectory,
         "trajectory_results": [atoms.calc.results for atoms in trajectory],
     }

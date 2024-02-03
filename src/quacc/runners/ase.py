@@ -296,6 +296,7 @@ def run_neb(
             force_job=force_job,
             force_job_params=force_job_kwargs,
             autorestart_params=autorestart_kwargs,
+            directory = job_results_dir,
             **neb_kwargs,
         )
         
@@ -309,9 +310,7 @@ def run_neb(
     # Perform cleanup operations
     dir_cleanup(tmpdir, job_results_dir)
 
-    print(neb)
-    raise KeyboardInterrupt
-    return dyn
+    return neb, dyn
 
 
 def run_vib(

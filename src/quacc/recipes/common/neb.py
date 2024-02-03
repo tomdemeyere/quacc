@@ -10,17 +10,26 @@ from ase.mep.neb import NEBOptimizer, idpp_interpolate, interpolate
 
 from quacc import Job, flow, subflow
 from quacc.runners.ase import run_neb
+from quacc.schemas.ase import summarize_neb
 from quacc.utils.dicts import recursive_dict_merge
 from quacc.wflow_tools.flow_control import resolve
 
 if TYPE_CHECKING:
     from typing import Any
 
+    from quacc.schemas._aliases.ase import NebSchema
+
 
 class ConcurrentNEB:
 
     def __init__(
-        self, *args, force_job=None, force_job_params, autorestart_params, **kwargs
+        self,
+        *args,
+        force_job=None,
+        force_job_params,
+        autorestart_params,
+        directory,
+        **kwargs,
     ):
 
         self.force_job = force_job
@@ -29,6 +38,8 @@ class ConcurrentNEB:
         self.autorestart_params = autorestart_params
 
         self.latest_directories = {}
+
+        self.directory = directory
 
         super().__init__(*args, **kwargs)
 
@@ -96,7 +107,7 @@ def neb_flow(
     interpolation_method: str = "idpp",
     interpolation_params: dict[str, Any] | None = None,
     **neb_kwargs,
-):
+) -> NebSchema:
     """
     Parameters
     ----------
@@ -141,7 +152,7 @@ def neb_flow(
     run_defaults = {"fmax": 0.05, "steps": 1000}
     run_flags = recursive_dict_merge(run_defaults, run_params)
 
-    run_neb(
+    neb, dyn = run_neb(
         images,
         force_job,
         force_job_flags,
@@ -150,3 +161,5 @@ def neb_flow(
         run_flags,
         autorestart_flags,
     )
+
+    return summarize_neb(neb, dyn)
