@@ -15,7 +15,7 @@ from monty.os.path import zpath
 
 from quacc import SETTINGS
 from quacc.atoms.core import copy_atoms, get_final_atoms_from_dyn
-from quacc.runners.prep import calc_cleanup, calc_setup
+from quacc.runners.prep import calc_cleanup, calc_setup, dir_setup, dir_cleanup
 from quacc.utils.dicts import recursive_dict_merge
 
 try:
@@ -264,7 +264,7 @@ def run_neb(
     images = [copy_atoms(image) for image in images]
 
     # Perform staging operations
-    tmpdir, job_results_dir = calc_setup()
+    tmpdir, job_results_dir = dir_setup()
 
     # Set defaults
     optimizer_kwargs = recursive_dict_merge(
@@ -307,7 +307,7 @@ def run_neb(
     dyn.traj_atoms = read(traj_filename, index=":")
 
     # Perform cleanup operations
-    calc_cleanup(tmpdir, job_results_dir)
+    dir_cleanup(tmpdir, job_results_dir)
 
     print(neb)
     raise KeyboardInterrupt

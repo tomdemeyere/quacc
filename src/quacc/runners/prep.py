@@ -1,4 +1,5 @@
 """Prepration for runners."""
+
 from __future__ import annotations
 
 import os
@@ -19,8 +20,26 @@ if TYPE_CHECKING:
     from ase.atoms import Atoms
 
 
+def dir_setup():
+
+    tmpdir_base = SETTINGS.SCRATCH_DIR or SETTINGS.RESULTS_DIR
+    tmpdir = make_unique_dir(base_path=tmpdir_base, prefix="tmp-quacc-")
+
+    job_results_dir = SETTINGS.RESULTS_DIR
+    if SETTINGS.CREATE_UNIQUE_DIR:
+        job_results_dir /= f"{tmpdir.name.split('tmp-')[-1]}"
+
+    # Create a symlink to the tmpdir
+    if os.name != "nt" and SETTINGS.SCRATCH_DIR:
+        symlink = SETTINGS.RESULTS_DIR / f"symlink-{tmpdir.name}"
+        symlink.unlink(missing_ok=True)
+        symlink.symlink_to(tmpdir, target_is_directory=True)
+
+    return tmpdir, job_results_dir
+
+
 def calc_setup(
-    atoms: Atoms | None = None, copy_files: str | Path | list[str | Path] | None = None
+    atoms: Atoms, copy_files: str | Path | list[str | Path] | None = None
 ) -> tuple[Path, Path]:
     """
     Perform staging operations for a calculation, including copying files to the scratch
@@ -50,24 +69,9 @@ def calc_setup(
         within the `SETTINGS.RESULTS_DIR`.
     """
 
-    # Create a tmpdir for the calculation
-    tmpdir_base = SETTINGS.SCRATCH_DIR or SETTINGS.RESULTS_DIR
-    tmpdir = make_unique_dir(base_path=tmpdir_base, prefix="tmp-quacc-")
+    tmpdir, job_results_dir = dir_setup()
 
-    # Set the calculator's directory
-    if atoms:
-        atoms.calc.directory = tmpdir
-
-    # Define the results directory
-    job_results_dir = SETTINGS.RESULTS_DIR
-    if SETTINGS.CREATE_UNIQUE_DIR:
-        job_results_dir /= f"{tmpdir.name.split('tmp-')[-1]}"
-
-    # Create a symlink to the tmpdir
-    if os.name != "nt" and SETTINGS.SCRATCH_DIR:
-        symlink = SETTINGS.RESULTS_DIR / f"symlink-{tmpdir.name}"
-        symlink.unlink(missing_ok=True)
-        symlink.symlink_to(tmpdir, target_is_directory=True)
+    atoms.calc.directory = tmpdir
 
     # Copy files to tmpdir and decompress them if needed
     if isinstance(copy_files, dict):
@@ -81,13 +85,43 @@ def calc_setup(
     # for all threads in the current process. However, elsewhere in the code,
     # we use absolute paths to avoid issues. We keep this here for now because some
     # old ASE calculators do not support the `directory` keyword argument.
-    if atoms:
-        os.chdir(tmpdir)
+    os.chdir(tmpdir)
 
     return tmpdir, job_results_dir
 
 
-def calc_cleanup(atoms: Atoms | None = None, tmpdir: Path | str = "", job_results_dir: Path | str = "") -> None:
+def dir_cleanup(tmpdir: Path | str, job_results_dir: Path | str) -> None:
+    """
+    Perform cleanup operations for a calculation, including gzipping files, copying
+    files back to the original directory, and removing the tmpdir.
+    """
+
+    job_results_dir, tmpdir = Path(job_results_dir), Path(tmpdir)
+
+    # Safety check
+    if "tmp-" not in str(tmpdir):
+        msg = f"{tmpdir} does not appear to be a tmpdir... exiting for safety!"
+        raise ValueError(msg)
+
+    job_results_dir.mkdir(parents=True, exist_ok=True)
+
+    if SETTINGS.GZIP_FILES:
+        gzip_dir(tmpdir)
+
+    # Move files from tmpdir to job_results_dir
+    for file_name in os.listdir(tmpdir):
+        move(tmpdir / file_name, job_results_dir / file_name)
+
+    # Remove symlink to tmpdir
+    if os.name != "nt" and SETTINGS.SCRATCH_DIR:
+        symlink_path = SETTINGS.RESULTS_DIR / f"symlink-{tmpdir.name}"
+        symlink_path.unlink(missing_ok=True)
+
+    # Remove the tmpdir
+    rmtree(tmpdir, ignore_errors=True)
+
+
+def calc_cleanup(atoms: Atoms, tmpdir: Path | str, job_results_dir: Path | str) -> None:
     """
     Perform cleanup operations for a calculation, including gzipping files, copying
     files back to the original directory, and removing the tmpdir.
@@ -110,39 +144,12 @@ def calc_cleanup(atoms: Atoms | None = None, tmpdir: Path | str = "", job_result
     None
     """
 
-    job_results_dir, tmpdir = Path(job_results_dir), Path(tmpdir)
-
-    # Safety check
-    if "tmp-" not in str(tmpdir):
-        msg = f"{tmpdir} does not appear to be a tmpdir... exiting for safety!"
-        raise ValueError(msg)
-
+    dir_cleanup(tmpdir, job_results_dir)
     # Reset the calculator's directory
-    if atoms:
-        atoms.calc.directory = job_results_dir
-
-    # Make the results directory
-    job_results_dir.mkdir(parents=True, exist_ok=True)
+    atoms.calc.directory = job_results_dir
 
     # NOTE: Technically, this breaks thread-safety since it will change the cwd
     # for all threads in the current process. However, elsewhere in the code,
     # we use absolute paths to avoid issues. We keep this here for now because some
     # old ASE calculators do not support the `directory` keyword argument.
-    if atoms:
-        os.chdir(job_results_dir)
-
-    # Gzip files in tmpdir
-    if SETTINGS.GZIP_FILES:
-        gzip_dir(tmpdir)
-
-    # Move files from tmpdir to job_results_dir
-    for file_name in os.listdir(tmpdir):
-        move(tmpdir / file_name, job_results_dir / file_name)
-
-    # Remove symlink to tmpdir
-    if os.name != "nt" and SETTINGS.SCRATCH_DIR:
-        symlink_path = SETTINGS.RESULTS_DIR / f"symlink-{tmpdir.name}"
-        symlink_path.unlink(missing_ok=True)
-
-    # Remove the tmpdir
-    rmtree(tmpdir, ignore_errors=True)
+    os.chdir(job_results_dir)
