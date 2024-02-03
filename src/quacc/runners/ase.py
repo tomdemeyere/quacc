@@ -264,6 +264,9 @@ def run_neb(
     images = [copy_atoms(image) for image in images]
 
     # Perform staging operations
+    from ase.calculators.singlepoint import SinglePointCalculator
+    fake_atoms = Atoms()
+    fake_atoms.calc = SinglePointCalculator(fake_atoms)
     tmpdir, job_results_dir = calc_setup()
 
     # Set defaults
