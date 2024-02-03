@@ -265,6 +265,7 @@ def run_neb(
 
     # Perform staging operations
     from ase.calculators.singlepoint import SinglePointCalculator
+    from ase import Atoms
     fake_atoms = Atoms()
     fake_atoms.calc = SinglePointCalculator(fake_atoms)
     tmpdir, job_results_dir = calc_setup()
