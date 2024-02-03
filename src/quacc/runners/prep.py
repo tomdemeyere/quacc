@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 
 def calc_setup(
-    atoms: Atoms, copy_files: str | Path | list[str | Path] | None = None
+    atoms: Atoms | None = None, copy_files: str | Path | list[str | Path] | None = None
 ) -> tuple[Path, Path]:
     """
     Perform staging operations for a calculation, including copying files to the scratch
@@ -55,7 +55,8 @@ def calc_setup(
     tmpdir = make_unique_dir(base_path=tmpdir_base, prefix="tmp-quacc-")
 
     # Set the calculator's directory
-    atoms.calc.directory = tmpdir
+    if atoms:
+        atoms.calc.directory = tmpdir
 
     # Define the results directory
     job_results_dir = SETTINGS.RESULTS_DIR
@@ -80,12 +81,13 @@ def calc_setup(
     # for all threads in the current process. However, elsewhere in the code,
     # we use absolute paths to avoid issues. We keep this here for now because some
     # old ASE calculators do not support the `directory` keyword argument.
-    os.chdir(tmpdir)
+    if atoms:
+        os.chdir(tmpdir)
 
     return tmpdir, job_results_dir
 
 
-def calc_cleanup(atoms: Atoms, tmpdir: Path | str, job_results_dir: Path | str) -> None:
+def calc_cleanup(atoms: Atoms | None = None, tmpdir: Path | str = "", job_results_dir: Path | str = "") -> None:
     """
     Perform cleanup operations for a calculation, including gzipping files, copying
     files back to the original directory, and removing the tmpdir.
@@ -116,7 +118,8 @@ def calc_cleanup(atoms: Atoms, tmpdir: Path | str, job_results_dir: Path | str) 
         raise ValueError(msg)
 
     # Reset the calculator's directory
-    atoms.calc.directory = job_results_dir
+    if atoms:
+        atoms.calc.directory = job_results_dir
 
     # Make the results directory
     job_results_dir.mkdir(parents=True, exist_ok=True)
@@ -125,7 +128,8 @@ def calc_cleanup(atoms: Atoms, tmpdir: Path | str, job_results_dir: Path | str) 
     # for all threads in the current process. However, elsewhere in the code,
     # we use absolute paths to avoid issues. We keep this here for now because some
     # old ASE calculators do not support the `directory` keyword argument.
-    os.chdir(job_results_dir)
+    if atoms:
+        os.chdir(job_results_dir)
 
     # Gzip files in tmpdir
     if SETTINGS.GZIP_FILES:
