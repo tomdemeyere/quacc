@@ -10,7 +10,7 @@ from ase.mep.neb import NEBOptimizer, idpp_interpolate, interpolate
 
 from quacc import Job, flow, subflow
 from quacc.runners.ase import run_neb
-from quacc.schemas.ase import summarize_neb
+from quacc.schemas.ase import summarize_neb_run
 from quacc.utils.dicts import recursive_dict_merge
 from quacc.wflow_tools.flow_control import resolve
 
@@ -162,4 +162,4 @@ def neb_flow(
         autorestart_flags,
     )
 
-    return summarize_neb(neb, dyn)
+    return summarize_neb_run(neb, dyn)
