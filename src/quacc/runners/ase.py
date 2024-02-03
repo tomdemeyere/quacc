@@ -267,7 +267,7 @@ def run_neb(
     from ase.calculators.singlepoint import SinglePointCalculator
     fake_atoms = images[0].copy()
     fake_atoms.calc = SinglePointCalculator(fake_atoms)
-    tmpdir, job_results_dir = calc_setup()
+    tmpdir, job_results_dir = calc_setup(fake_atoms)
 
     # Set defaults
     optimizer_kwargs = recursive_dict_merge(
