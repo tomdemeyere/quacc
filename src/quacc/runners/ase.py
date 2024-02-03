@@ -1,4 +1,5 @@
 """Utility functions for running ASE calculators with ASE-based methods."""
+
 from __future__ import annotations
 
 import sys
@@ -29,6 +30,9 @@ if TYPE_CHECKING:
 
     from ase.atoms import Atoms
     from ase.optimize.optimize import Optimizer
+
+    from quacc import Job
+    from quacc.recipes.common.neb import NEB, DyNEB
 
     class OptimizerKwargs(TypedDict, total=False):
         restart: str | None  # default = None
@@ -201,6 +205,104 @@ def run_opt(
     # Perform cleanup operations
     calc_cleanup(tmpdir, job_results_dir)
 
+    return dyn
+
+
+def run_neb(
+    images,
+    force_job: Job | None = None,
+    force_job_kwargs: dict[str, Any] | None = None,
+    neb_kwargs: dict[str, Any] | None = None,
+    optimizer_kwargs: dict[str, Any] | None = None,
+    run_kwargs: dict[str, Any] | None = None,
+    autorestart_kwargs: dict[str, Any] | None = None,
+) -> Optimizer:
+    """
+    Run an ASE-based optimization in a scratch directory and copy the results back to
+    the original directory. This can be useful if file I/O is slow in the working
+    directory, so long as file transfer speeds are reasonable.
+
+    This is a wrapper around the optimizers in ASE. Note: This function does not
+    modify the atoms object in-place.
+
+    Parameters
+    ----------
+    atoms
+        The Atoms object to run the calculation on.
+    relax_cell
+        Whether to relax the unit cell shape and volume.
+    fmax
+        Tolerance for the force convergence (in eV/A).
+    max_steps
+        Maximum number of steps to take.
+    optimizer
+        Optimizer class to use.
+    optimizer_kwargs
+        Dictionary of kwargs for the optimizer. Takes all valid kwargs for ASE
+        Optimizer classes. Refer to `_set_sella_kwargs` for Sella-related
+        kwargs and how they are set.
+    run_kwargs
+        Dictionary of kwargs for the run() method of the optimizer.
+    copy_files
+        Filenames to copy from source to scratch directory.
+
+    Returns
+    -------
+    Optimizer
+        The ASE Optimizer object.
+    """
+
+    # Copy images so we don't modify it in-place
+    images = [copy_atoms(image) for image in images]
+
+    # Perform staging operations
+    tmpdir, job_results_dir = calc_setup()
+
+    # Set defaults
+    optimizer_kwargs = recursive_dict_merge(
+        {"logfile": "-" if SETTINGS.DEBUG else tmpdir / "neb.log"}, optimizer_kwargs
+    )
+    run_kwargs = run_kwargs or {}
+    autorestart_kwargs = autorestart_kwargs or {}
+
+    # Check if trajectory kwarg is specified
+    if "trajectory" in optimizer_kwargs:
+        msg = "Quacc does not support setting the `trajectory` kwarg."
+        raise ValueError(msg)
+
+    optimizer = optimizer_kwargs.pop("optimizer", FIRE)
+
+    if "class" not in neb_kwargs:
+        msg = "The `class` key must be specified in `neb_kwargs`."
+        raise ValueError(msg)
+    
+    neb_class = neb_kwargs.pop("class")
+
+    # Define the Trajectory object
+    traj_filename = tmpdir / "neb.traj"
+    optimizer_kwargs["trajectory"] = traj_filename
+
+    # Run calculation
+    with (
+        neb_class(
+            images,
+            force_job=force_job,
+            force_job_params=force_job_kwargs,
+            autorestart_params=autorestart_kwargs,
+            **neb_kwargs,
+        ) as neb,
+        optimizer(neb, **optimizer_kwargs) as dyn,
+    ):
+        dyn.run(**run_kwargs)
+
+    # Store the trajectory atoms
+    dyn.traj_atoms = read(traj_filename, index=":")
+
+    # Perform cleanup operations
+    calc_cleanup(tmpdir, job_results_dir)
+
+    print(neb)
+    raise KeyboardInterrupt
     return dyn
 
 
