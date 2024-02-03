@@ -14,7 +14,7 @@ from monty.dev import requires
 from monty.os.path import zpath
 
 from quacc import SETTINGS
-from quacc.atoms.core import copy_atoms
+from quacc.atoms.core import copy_atoms, get_final_atoms_from_dyn
 from quacc.runners.prep import calc_cleanup, calc_setup
 from quacc.utils.dicts import recursive_dict_merge
 
@@ -35,7 +35,7 @@ if TYPE_CHECKING:
     from quacc.recipes.common.neb import NEB, DyNEB
 
     class OptimizerKwargs(TypedDict, total=False):
-        restart: str | None  # default = None
+        restart: Path | str | None  # default = None
         append_trajectory: bool  # default = False
 
     class VibKwargs(TypedDict, total=False):
@@ -48,6 +48,7 @@ def run_calc(
     atoms: Atoms,
     geom_file: str | None = None,
     copy_files: str | Path | list[str | Path] | None = None,
+    get_forces: bool = False,
 ) -> Atoms:
     """
     Run a calculation in a scratch directory and copy the results back to the original
@@ -69,6 +70,8 @@ def run_calc(
         varies between codes.
     copy_files
         Filenames to copy from source to scratch directory.
+    get_forces
+        Whether to use `atoms.get_forces()` instead of `atoms.get_potential_energy()`.
 
     Returns
     -------
@@ -80,10 +83,13 @@ def run_calc(
     atoms = copy_atoms(atoms)
 
     # Perform staging operations
-    tmpdir, job_results_dir = calc_setup(copy_files=copy_files)
+    tmpdir, job_results_dir = calc_setup(atoms, copy_files=copy_files)
 
-    # Run calculation via get_potential_energy()
-    atoms.get_potential_energy()
+    # Run calculation
+    if get_forces:
+        atoms.get_forces()
+    else:
+        atoms.get_potential_energy()
 
     # Most ASE calculators do not update the atoms object in-place with a call
     # to .get_potential_energy(), which is important if an internal optimizer is
@@ -109,7 +115,7 @@ def run_calc(
         atoms.cell = atoms_new.cell
 
     # Perform cleanup operations
-    calc_cleanup(tmpdir, job_results_dir)
+    calc_cleanup(atoms, tmpdir, job_results_dir)
 
     return atoms
 
@@ -163,7 +169,7 @@ def run_opt(
     atoms = copy_atoms(atoms)
 
     # Perform staging operations
-    tmpdir, job_results_dir = calc_setup(copy_files=copy_files)
+    tmpdir, job_results_dir = calc_setup(atoms, copy_files=copy_files)
 
     # Set defaults
     optimizer_kwargs = recursive_dict_merge(
@@ -180,8 +186,10 @@ def run_opt(
         msg = "Quacc does not support setting the `trajectory` kwarg."
         raise ValueError(msg)
 
-    # Set Sella kwargs
-    if optimizer.__name__ == "Sella":
+    # Handle optimizer kwargs
+    if optimizer.__name__.startswith("SciPy"):
+        optimizer_kwargs.pop("restart")
+    elif optimizer.__name__ == "Sella":
         _set_sella_kwargs(atoms, optimizer_kwargs)
     elif optimizer.__name__ == "IRC":
         optimizer_kwargs.pop("restart", None)
@@ -203,7 +211,7 @@ def run_opt(
     dyn.traj_atoms = read(traj_filename, index=":")
 
     # Perform cleanup operations
-    calc_cleanup(tmpdir, job_results_dir)
+    calc_cleanup(get_final_atoms_from_dyn(dyn), tmpdir, job_results_dir)
 
     return dyn
 
@@ -341,7 +349,7 @@ def run_vib(
     vib_kwargs = vib_kwargs or {}
 
     # Perform staging operations
-    tmpdir, job_results_dir = calc_setup(copy_files=copy_files)
+    tmpdir, job_results_dir = calc_setup(atoms, copy_files=copy_files)
 
     # Run calculation
     vib = Vibrations(atoms, name=str(tmpdir / "vib"), **vib_kwargs)
@@ -351,7 +359,7 @@ def run_vib(
     vib.summary(log=sys.stdout if SETTINGS.DEBUG else str(tmpdir / "vib_summary.log"))
 
     # Perform cleanup operations
-    calc_cleanup(tmpdir, job_results_dir)
+    calc_cleanup(vib.atoms, tmpdir, job_results_dir)
 
     return vib
 

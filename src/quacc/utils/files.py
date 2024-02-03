@@ -63,7 +63,7 @@ def copy_decompress_files(
     None
     """
     for f in source_files:
-        f_path = Path(f).expanduser()
+        f_path = Path(zpath(f)).expanduser()
         if f_path.is_symlink():
             continue
         if f_path.is_file():
@@ -96,13 +96,12 @@ def copy_decompress_tree(
     """
 
     # Work with glob pattern, work if the glob pattern return nothing
-    for base, tree in source_files.items():
-        base = Path(base).expanduser()
+    for _base, _tree in source_files.items():
+        base = Path(_base).expanduser()
 
         abs_files, rel_files = [], []
 
-        if not isinstance(tree, list):
-            tree = [tree]
+        tree = [_tree] if not isinstance(_tree, list) else _tree
 
         for f in tree:
             glob_found = list(base.glob(f))
@@ -144,14 +143,18 @@ def copy_decompress_files_from_dir(source: str | Path, destination: str | Path) 
         warnings.warn(f"Cannot find {src}", UserWarning)
 
 
-def make_unique_dir(base_path: str | None = None) -> Path:
+def make_unique_dir(
+    base_path: Path | str | None = None, prefix: str | None = None
+) -> Path:
     """
-    Make a directory with a unique name. Uses the same format as Jobflow.
+    Make a directory with a unique name.
 
     Parameters
     ----------
     base_path
         Path to the base directory.
+    prefix
+        Prefix to add to the directory name.
 
     Returns
     -------
@@ -159,7 +162,9 @@ def make_unique_dir(base_path: str | None = None) -> Path:
         Path to the job directory.
     """
     time_now = datetime.now(timezone.utc).strftime("%Y-%m-%d-%H-%M-%S-%f")
-    job_dir = Path(f"quacc-{time_now}-{randint(10000, 99999)}")
+    if prefix is None:
+        prefix = ""
+    job_dir = Path(f"{prefix}{time_now}-{randint(10000, 99999)}")
     if base_path:
         job_dir = Path(base_path, job_dir)
     job_dir.mkdir(parents=True)
