@@ -47,8 +47,8 @@ class ConcurrentNEB:
 
     def get_forces(self, *args, **kwargs):
 
-        sl = slice(0, len(self.images)) if self.method != "aseneb" else slice(1, -1)
-
+        #sl = slice(0, len(self.images)) if self.method != "aseneb" else slice(1, -1)
+        sl = slice(0, len(self.images))
         to_calc = []
 
         force_jobs = []

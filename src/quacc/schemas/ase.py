@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -39,6 +40,7 @@ if TYPE_CHECKING:
         VibThermoSchema,
     )
 
+LOGGER = logging.getLogger(__name__)
 
 def summarize_run(
     final_atoms: Atoms,
@@ -289,18 +291,22 @@ def summarize_neb_run(
     final_images = neb.images
     directory = neb.directory
 
-    # Check convergence
-    #is_converged = dyn.converged()
-    #if check_convergence and not is_converged:
-    #    msg = f"Optimization did not converge. Refer to {directory}"
-    #    raise RuntimeError(msg)
+    # NEBOptimizer is one of the best for NEB calculations
+    # but it does not have an easy way to check for convergence.
+    if dyn.__class__.__name__ not in ["NEBOptimizer"]:
+        is_converged = dyn.converged()
+    else:
+        LOGGER.warning(f"cannot check for convergence when using optimizer \"{dyn.__class__.__name__}\" is_converged will be set to True. Please check your results.")
+        is_converged = True
 
-    # Base task doc
+    if check_convergence and not is_converged:
+        msg = f"Optimization did not converge. Refer to {directory}"
+        raise RuntimeError(msg)
 
     base_task_doc = {"images_info": []}
 
     if charge_and_multiplicity is None:
-        charge_and_multiplicity = [None] * len(initial_images)
+        charge_and_multiplicity = [None] * len(final_images)
 
     # This will not work for AutoNEB since the number of images change.
     for initial_atoms, final_atoms, chg_mult in zip(
@@ -321,7 +327,7 @@ def summarize_neb_run(
     parameters_opt.pop("logfile", None)
     parameters_opt.pop("restart", None)
 
-    parameters_neb = neb.todict()
+    parameters_neb = neb.__dict__
 
     analysis = NEBTools(final_images)
 
@@ -332,6 +338,7 @@ def summarize_neb_run(
         "parameters_opt": parameters_opt,
         "parameters_neb": parameters_neb,
         "nsteps": dyn.get_number_of_steps(),
+        "converged": is_converged,
         "nimages": neb.nimages,
         "trajectory": trajectory,
         "trajectory_results": [atoms.calc.results for atoms in trajectory],

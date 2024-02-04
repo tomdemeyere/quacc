@@ -10,12 +10,38 @@ import numpy as np
 from ase.filters import Filter
 from ase.io.jsonio import encode
 from pymatgen.io.ase import AseAtomsAdaptor
+from ase.calculators.singlepoint import SinglePointCalculator
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from ase.atoms import Atoms
     from ase.optimize.optimize import Dynamics
 
 logger = logging.getLogger(__name__)
+
+
+def attach_empty_calc(atoms: Atoms, directory: Path | str | None = None) -> Atoms:
+    """
+    Attach an empty calculator to an Atoms object.
+
+    Parameters
+    ----------
+    atoms
+        Atoms object
+    directory
+        Directory to store the results
+
+    Returns
+    -------
+    atoms
+        Atoms object with an empty calculator
+    """
+    if atoms.calc is None:
+        atoms.calc = SinglePointCalculator(atoms, energy=0.0)
+        atoms.calc.directory = directory
+
+    return atoms
 
 
 def get_atoms_id(atoms: Atoms) -> str:
