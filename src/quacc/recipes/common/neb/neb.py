@@ -77,14 +77,24 @@ def neb_flow(
         The results of the NEB calculation.
     """
 
-    interpolation_flags = interpolation_params or {}
     autorestart_flags = autorestart_params or {}
     run_flags = run_params or {}
     force_job_flags = force_job_params or {}
 
+    interpolation_flags = interpolation_params or {}
+
     if interpolation_method == "linear":
         interpolate(images, **interpolation_flags)
     elif interpolation_method == "idpp":
+        interpolation_defaults = {
+            "fmax": 0.005,
+            "steps": 9999,
+            "traj": None,
+            "log": None,
+        }
+        interpolation_flags = recursive_dict_merge(
+            interpolation_defaults, interpolation_flags
+        )
         idpp_interpolate(images, **interpolation_flags)
 
     neb_defaults = {"neb_class": NEB, "method": "aseneb", "climb": False}
