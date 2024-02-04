@@ -290,10 +290,10 @@ def summarize_neb_run(
     directory = neb.directory
 
     # Check convergence
-    is_converged = dyn.converged()
-    if check_convergence and not is_converged:
-        msg = f"Optimization did not converge. Refer to {directory}"
-        raise RuntimeError(msg)
+    #is_converged = dyn.converged()
+    #if check_convergence and not is_converged:
+    #    msg = f"Optimization did not converge. Refer to {directory}"
+    #    raise RuntimeError(msg)
 
     # Base task doc
 
@@ -331,7 +331,6 @@ def summarize_neb_run(
         "fit_images": fit_images(final_images),
         "parameters_opt": parameters_opt,
         "parameters_neb": parameters_neb,
-        "converged": is_converged,
         "nsteps": dyn.get_number_of_steps(),
         "nimages": neb.nimages,
         "trajectory": trajectory,

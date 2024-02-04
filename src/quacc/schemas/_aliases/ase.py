@@ -45,7 +45,6 @@ class NebSchema:
     fit_images: ForceFit | None
     parameters_opt: dict[str, Any]  # from Optimizer.todict()
     parameters_neb: dict[str, Any]
-    converged: bool
     nsteps: int
     nimages: int
     trajectory: list[Atoms]

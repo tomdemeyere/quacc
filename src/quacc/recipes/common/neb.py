@@ -25,7 +25,7 @@ class ConcurrentNEB:
     def __init__(
         self,
         *args,
-        force_job=None,
+        force_job,
         force_job_params,
         autorestart_params,
         directory,
@@ -42,6 +42,8 @@ class ConcurrentNEB:
         self.directory = directory
 
         super().__init__(*args, **kwargs)
+
+        self.initial_images = self.images.copy()
 
     def get_forces(self, *args, **kwargs):
 
