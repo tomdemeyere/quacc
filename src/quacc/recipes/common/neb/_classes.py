@@ -3,7 +3,8 @@ from __future__ import annotations
 from functools import partial
 from typing import TYPE_CHECKING
 
-from ase.calculators.singlepoint import SinglePointDFTCalculator
+from ase.calculators.calculator import all_properties
+from ase.calculators.singlepoint import SinglePointCalculator
 from ase.mep.neb import NEB as NEB_
 from ase.mep.neb import DyNEB as DyNEB_
 
@@ -99,8 +100,12 @@ class ConcurrentNEB:
 
         for idx, result in zip(image_idx, results):
             self.latest_directories[idx] = result["dir_name"]
-            self.images[idx].calc = SinglePointDFTCalculator(
-                self.images[idx], **result["results"]
+
+            filtered_results = {
+                k: v for k, v in result["results"].items() if k in all_properties
+            }
+            self.images[idx].calc = SinglePointCalculator(
+                self.images[idx], **filtered_results
             )
 
         return super().get_forces(*args, **kwargs)
