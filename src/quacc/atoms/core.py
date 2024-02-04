@@ -1,4 +1,5 @@
 """Utility functions for dealing with Atoms."""
+
 from __future__ import annotations
 
 import hashlib
@@ -10,38 +11,13 @@ import numpy as np
 from ase.filters import Filter
 from ase.io.jsonio import encode
 from pymatgen.io.ase import AseAtomsAdaptor
-from ase.calculators.singlepoint import SinglePointCalculator
 
 if TYPE_CHECKING:
-    from pathlib import Path
 
     from ase.atoms import Atoms
     from ase.optimize.optimize import Dynamics
 
 logger = logging.getLogger(__name__)
-
-
-def attach_empty_calc(atoms: Atoms, directory: Path | str | None = None) -> Atoms:
-    """
-    Attach an empty calculator to an Atoms object.
-
-    Parameters
-    ----------
-    atoms
-        Atoms object
-    directory
-        Directory to store the results
-
-    Returns
-    -------
-    atoms
-        Atoms object with an empty calculator
-    """
-    if atoms.calc is None:
-        atoms.calc = SinglePointCalculator(atoms, energy=0.0)
-        atoms.calc.directory = directory
-
-    return atoms
 
 
 def get_atoms_id(atoms: Atoms) -> str:
@@ -140,9 +116,11 @@ def get_charge_attribute(atoms: Atoms) -> int | None:
     return (
         atoms.charge
         if getattr(atoms, "charge", None)
-        else round(atoms.get_initial_charges().sum())
-        if atoms.has("initial_charges")
-        else None
+        else (
+            round(atoms.get_initial_charges().sum())
+            if atoms.has("initial_charges")
+            else None
+        )
     )
 
 
@@ -163,9 +141,11 @@ def get_spin_multiplicity_attribute(atoms: Atoms) -> int | None:
     return (
         atoms.spin_multiplicity
         if getattr(atoms, "spin_multiplicity", None)
-        else round(np.abs(atoms.get_initial_magnetic_moments().sum()) + 1)
-        if atoms.has("initial_magmoms")
-        else None
+        else (
+            round(np.abs(atoms.get_initial_magnetic_moments().sum()) + 1)
+            if atoms.has("initial_magmoms")
+            else None
+        )
     )
 
 
@@ -243,9 +223,11 @@ def check_charge_and_spin(
         default_spin_multiplicity = 1 if nelectrons % 2 == 0 else 2
         mol.set_charge_and_spin(
             charge if charge is not None else mol.charge,
-            spin_multiplicity
-            if spin_multiplicity is not None
-            else default_spin_multiplicity,
+            (
+                spin_multiplicity
+                if spin_multiplicity is not None
+                else default_spin_multiplicity
+            ),
         )
     if (mol.nelectrons + mol.spin_multiplicity) % 2 != 1:
         raise ValueError(

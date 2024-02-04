@@ -15,7 +15,7 @@ from monty.os.path import zpath
 
 from quacc import SETTINGS
 from quacc.atoms.core import copy_atoms, get_final_atoms_from_dyn
-from quacc.runners.prep import calc_cleanup, calc_setup, dir_setup, dir_cleanup
+from quacc.runners.prep import calc_cleanup, calc_setup, dir_cleanup, dir_setup
 from quacc.utils.dicts import recursive_dict_merge
 
 try:
@@ -32,7 +32,6 @@ if TYPE_CHECKING:
     from ase.optimize.optimize import Optimizer
 
     from quacc import Job
-    from quacc.recipes.common.neb import NEB, DyNEB
 
     class OptimizerKwargs(TypedDict, total=False):
         restart: Path | str | None  # default = None
@@ -280,11 +279,11 @@ def run_neb(
 
     optimizer = optimizer_kwargs.pop("optimizer", FIRE)
 
-    if "class" not in neb_kwargs:
-        msg = "The `class` key must be specified in `neb_kwargs`."
+    if "neb_class" not in neb_kwargs:
+        msg = "The `neb_class` key must be specified in `neb_kwargs`."
         raise ValueError(msg)
-    
-    neb_class = neb_kwargs.pop("class")
+
+    neb_class = neb_kwargs.pop("neb_class")
 
     # Define the Trajectory object
     traj_filename = str(tmpdir / "neb.traj")
@@ -292,16 +291,16 @@ def run_neb(
 
     # Run calculation
     neb = neb_class(
-            images,
-            force_job=force_job,
-            force_job_params=force_job_kwargs,
-            autorestart_params=autorestart_kwargs,
-            directory = job_results_dir,
-            **neb_kwargs,
-        )
-        
+        images,
+        force_job=force_job,
+        force_job_params=force_job_kwargs,
+        autorestart_params=autorestart_kwargs,
+        directory=job_results_dir,
+        **neb_kwargs,
+    )
+
     dyn = optimizer(neb, **optimizer_kwargs)
-    
+
     dyn.run(**run_kwargs)
 
     # Store the trajectory atoms

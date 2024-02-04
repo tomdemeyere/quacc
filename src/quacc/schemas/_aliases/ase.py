@@ -46,6 +46,7 @@ class NebSchema:
     parameters_opt: dict[str, Any]  # from Optimizer.todict()
     parameters_neb: dict[str, Any]
     nsteps: int
+    converged: bool
     nimages: int
     trajectory: list[Atoms]
     trajectory_results: list[results]

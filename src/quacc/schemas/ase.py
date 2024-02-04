@@ -42,6 +42,7 @@ if TYPE_CHECKING:
 
 LOGGER = logging.getLogger(__name__)
 
+
 def summarize_run(
     final_atoms: Atoms,
     input_atoms: Atoms,
@@ -247,6 +248,8 @@ def summarize_neb_run(
 
     Parameters
     ----------
+    neb
+        ASE NEB object.
     dyn
         ASE Optimizer object.
     trajectory
@@ -256,7 +259,7 @@ def summarize_neb_run(
         Whether to check the convergence of the calculation. Defaults to True in
         settings.
     charge_and_multiplicity
-        Charge and spin multiplicity of the Atoms object, only used for Molecule
+        Charge and spin multiplicity of the images, only used for Molecule
         metadata.
     move_magmoms
         Whether to move the final magmoms of the original Atoms object to the
@@ -269,7 +272,7 @@ def summarize_neb_run(
 
     Returns
     -------
-    OptSchema
+    NebSchema
         Dictionary representation of the task document
     """
 
@@ -296,7 +299,9 @@ def summarize_neb_run(
     if dyn.__class__.__name__ not in ["NEBOptimizer"]:
         is_converged = dyn.converged()
     else:
-        LOGGER.warning(f"cannot check for convergence when using optimizer \"{dyn.__class__.__name__}\" is_converged will be set to True. Please check your results.")
+        LOGGER.warning(
+            f'cannot check for convergence when using optimizer "{dyn.__class__.__name__}" convergence will manually be set to True. Please check your results carefully.'
+        )
         is_converged = True
 
     if check_convergence and not is_converged:
