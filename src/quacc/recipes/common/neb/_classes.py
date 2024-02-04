@@ -12,35 +12,40 @@ from quacc.utils.dicts import recursive_dict_merge
 from quacc.wflow_tools.flow_control import resolve
 
 if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Any
 
-    pass
+    from ase import Atoms
+    from numpy.typing import NDArray
+
+    from quacc import Job
 
 
 class ConcurrentNEB:
     """
     A class to perform NEB calculations with concurrent force calculations. Using
     the appropriate workflow engine, the forces for all images are calculated
-    concurrently (in parallel) without the need for any mpi or threading code.
+    concurrently (in parallel) without the need for any explicit mpi or threading code.
 
     As of 04/02/2024 this is experimental and is working with the
     current version of ASE. Tiny changes in the ASE code might break this class.
 
-    In this class the initial and final state are always calculated at the beginning. This is done at the beginning of the calculation. The reason is that it allows for analysis in quacc.runners.ase.summarize_neb
+    In this class the initial and final state are always calculated at the start of the calculation (In vanilla ASE this is not done except of method != "aseneb"). The reason is that it allows for analysis in quacc.runners.ase.summarize_neb. To avoid
+    this behaviour simply send initial and final images with a calc attached (with results).
 
     Since this class actually check for changes BEFORE running the calculation, restarting should be as easy as sending the previous images to this class where
     each image has a calc with results attached.
 
-    **These classes are not meant to be used without any predefined Quacc flow. Unless
-    you known what you are doing of course.**
+    **These classes are not meant to be used without any predefined Quacc flow.**
     """
 
     def __init__(
         self,
         *args,
-        force_job,
-        force_job_params,
-        autorestart_params,
-        directory,
+        force_job: Job,
+        force_job_params: dict[str, Any],
+        autorestart_params: dict[str, Any] | None,
+        directory: Path | str,
         **kwargs,
     ):
         """
@@ -51,7 +56,7 @@ class ConcurrentNEB:
         force_job_params
             Parameters to pass to the force job.
         autorestart_params
-            When this is not None, autorestart will be turned on and these parameters will be passed to the force_job.
+            When this is not None, autorestart will be turned on and these parameters will be additionally passed to the force_job.
         directory
             For internal use only.
         """
@@ -68,7 +73,7 @@ class ConcurrentNEB:
 
         self.initial_images = self.images.copy()
 
-    def get_forces(self, *args, **kwargs):
+    def get_forces(self, *args, **kwargs) -> NDArray:
 
         force_jobs, image_idx, to_calc = [], [], []
 
@@ -102,7 +107,20 @@ class ConcurrentNEB:
 
     @subflow
     @staticmethod
-    def concurrent_calculate(images, force_jobs):
+    def concurrent_calculate(
+        images: list[Atoms], force_jobs: list[Job]
+    ) -> list[dict[str, Any]]:
+        """
+        Function to calculate the forces for all images concurrently.
+
+        Parameters
+        ----------
+        images
+            The images to calculate the forces for.
+        force_jobs
+            The force jobs to be used to calculate the forces.
+        """
+
         return [force_job(atoms=image) for image, force_job in zip(images, force_jobs)]
 
 
