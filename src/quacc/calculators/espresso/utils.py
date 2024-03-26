@@ -193,3 +193,48 @@ def grid_prepare_repr(patterns: dict[str, Any], nblocks: int) -> list:
     this_block = nblocks if nblocks > 0 else len(patterns)
     repr_to_do = [rep for rep in patterns if not patterns[rep]["done"]]
     return np.array_split(repr_to_do, np.ceil(len(repr_to_do) / this_block))
+
+
+def clean_dir(
+    dir_name: str | Path,
+    delete_restart: bool = True,
+    delete_wfc: bool = True,
+    delete_chg_density: bool = False,
+) -> None:
+    """
+    Function that cleans a directory from restart files, wfc files and charge-density files.
+
+    Parameters
+    ----------
+    dir_name
+        The directory name to clean
+    delete_restart
+        Whether to delete the restart files or not
+    delete_wfc
+        Whether to delete the wfc files or not
+    delete_chg_density
+        Whether to delete the charge-density files or not
+
+    Returns
+    -------
+    None
+    """
+
+    restart_files = ["*.wfc*", "*.mix*", "*.restart_k*", "*.restart_scf*"]
+    wfc_files = ["wfc*.*"]
+    chg_density_files = ["charge-density.*"]
+
+    file_to_delete = []
+
+    if delete_restart:
+        file_to_delete.extend(restart_files)
+
+    if delete_wfc:
+        file_to_delete.extend(wfc_files)
+
+    if delete_chg_density:
+        file_to_delete.extend(chg_density_files)
+
+    for file in file_to_delete:
+        for f in Path(dir_name).rglob(file):
+            f.unlink()
