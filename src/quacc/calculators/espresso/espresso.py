@@ -394,7 +394,7 @@ class Espresso(Espresso_):
         """
         self.input_atoms = input_atoms or Atoms()
         self.preset = preset
-        self.parallel_info = parallel_info
+        self.parallel_info = parallel_info or {}
         self.kwargs = kwargs
         self.user_calc_params = {}
 
