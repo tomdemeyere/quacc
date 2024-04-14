@@ -406,7 +406,7 @@ class Espresso(Espresso_):
             SETTINGS.ESPRESSO_BIN_DIR, SETTINGS.ESPRESSO_BINARIES[self._binary]
         )
         self._bin_path = str(full_path)
-        self._bin_path = f"{self._bin_path} {self.parallel_info.get('suffix', '')}"
+        self._bin_path = f"{self._bin_path} {self.parallel_info.pop('suffix', '')}"
 
         if template._ase_known_binary:
             self._cleanup_params()
