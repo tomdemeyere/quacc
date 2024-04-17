@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import contextlib
 import logging
+import os
 import socket
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -12,10 +13,10 @@ from random import randint
 from shutil import copy
 from typing import TYPE_CHECKING
 
-import yaml
 from monty.io import zopen
 from monty.os.path import zpath
 from monty.shutil import copy_r, decompress_dir, decompress_file
+from ruamel.yaml import YAML
 
 if TYPE_CHECKING:
     from typing import Any
@@ -211,8 +212,7 @@ def load_yaml_calc(yaml_path: str | Path) -> dict[str, Any]:
         raise FileNotFoundError(msg)
 
     # Load YAML file
-    with yaml_path.open() as stream:
-        config = yaml.safe_load(stream)
+    config = YAML().load(yaml_path)
 
     # Inherit arguments from any parent YAML files but do not overwrite those in
     # the child file.
@@ -289,3 +289,21 @@ def get_uri(directory: str | Path) -> str:
     with contextlib.suppress(socket.gaierror, socket.herror):
         hostname = socket.gethostbyaddr(hostname)[0]
     return f"{hostname}:{fullpath}"
+
+
+def safe_decompress_dir(path: str | Path) -> None:
+    """
+    Recursively decompresses all files in a directory.
+    This is a wrapper around the `decompress_file` function.
+
+
+    Args:
+        path (str | Path): Path to parent directory.
+    """
+    path = Path(path)
+    for parent, _, files in os.walk(path):
+        for f in files:
+            try:
+                decompress_file(Path(parent, f))
+            except FileNotFoundError:
+                logger.debug(f"Cannot find {f} in {parent}. Skipping.")
