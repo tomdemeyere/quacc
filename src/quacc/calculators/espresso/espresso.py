@@ -437,7 +437,7 @@ class Espresso(Espresso_):
         )
         self.profile = profile or EspressoProfile(
             binary=self._bin_path,
-            parallel_info=parallel_info,
+            parallel_info=self.parallel_info.copy(),
             pseudo_dir=self._pseudo_path,
         )
 
