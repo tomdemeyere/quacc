@@ -26,6 +26,7 @@ if TYPE_CHECKING:
     from ase.atoms import Atoms
     from numpy.typing import NDArray
 
+    from quacc.runners.ase import OptParams
     from quacc.schemas._aliases.ase import OptSchema
     from quacc.utils.files import Filenames, SourceDirectory
 
@@ -38,7 +39,7 @@ def ts_job(
     spin_multiplicity: int = 1,
     method: str = "wb97mv",
     basis: str = "def2-svpd",
-    opt_params: dict[str, Any] | None = None,
+    opt_params: OptParams | None = None,
     copy_files: SourceDirectory | dict[SourceDirectory, Filenames] | None = None,
     **calc_kwargs,
 ) -> OptSchema:
@@ -104,7 +105,7 @@ def irc_job(
     direction: Literal["forward", "reverse"] = "forward",
     method: str = "wb97mv",
     basis: str = "def2-svpd",
-    opt_params: dict[str, Any] | None = None,
+    opt_params: OptParams | None = None,
     copy_files: SourceDirectory | dict[SourceDirectory, Filenames] | None = None,
     **calc_kwargs,
 ) -> OptSchema:
@@ -240,13 +241,13 @@ def quasi_irc_job(
 def quasi_irc_perturb_job(
     atoms: Atoms,
     mode: list[list[float]] | NDArray,
-    charge: int = 0,
-    spin_multiplicity: int = 1,
     perturb_magnitude: float = 0.6,
     direction: Literal["forward", "reverse"] = "forward",
+    charge: int = 0,
+    spin_multiplicity: int = 1,
     method: str = "wb97mv",
     basis: str = "def2-svpd",
-    opt_params: dict[str, Any] | None = None,
+    opt_params: OptParams | None = None,
     copy_files: SourceDirectory | dict[SourceDirectory, Filenames] | None = None,
     **calc_kwargs,
 ) -> OptSchema:
@@ -262,15 +263,15 @@ def quasi_irc_perturb_job(
         Atoms object.
     mode
         Transition mode. This should be an Nx3 matrix, where N is the number of atoms in `atoms`.
-    charge
-        Charge of the system.
-    spin_multiplicity
-        Multiplicity of the system.
     perturb_magnitude
         Factor to multiply the transition mode. Default is 0.6. In some cases, it may be advisable to increase this
         factor, perhaps to 1.0 or 1.1. Lowering it is not generally found to be helpful.
     direction
         Direction of the (Quasi)IRC. Should be "forward" or "reverse".
+    charge
+        Charge of the system.
+    spin_multiplicity
+        Multiplicity of the system.
     method
         DFT exchange-correlation functional or other electronic structure
         method.
