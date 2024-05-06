@@ -407,6 +407,17 @@ class Espresso(GenericFileIOCalculator):
 
         template = template or EspressoTemplate("pw")
 
+        LOGGER.warning(
+            [
+                os.environ.get("PARSL_RANKS_PER_NODE"),
+                os.environ.get("PARSL_NUM_NODES"),
+                os.environ.get("PARSL_NUM_RANKS"),
+                os.environ.get("PARSL_MPI_PREFIX"),
+                os.environ.get("PARSL_MPIEXEC_PREFIX"),
+                os.environ.get("PARSL_MPI_NODELIST"),
+            ]
+        )
+
         self._binary = template.binary
 
         full_path = Path(
