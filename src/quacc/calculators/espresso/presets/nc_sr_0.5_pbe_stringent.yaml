@@ -1,0 +1,289 @@
+pseudopotentials:
+  H:
+    cutoff_rho: 288.0
+    cutoff_wfc: 72.0
+    filename: H.upf
+  He:
+    cutoff_rho: 360.0
+    cutoff_wfc: 90.0
+    filename: He.upf
+  Li:
+    cutoff_rho: 384.0
+    cutoff_wfc: 96.0
+    filename: Li.upf
+  Be:
+    cutoff_rho: 424.0
+    cutoff_wfc: 106.0
+    filename: Be.upf
+  B:
+    cutoff_rho: 304.0
+    cutoff_wfc: 76.0
+    filename: B.upf
+  C:
+    cutoff_rho: 328.0
+    cutoff_wfc: 82.0
+    filename: C.upf
+  N:
+    cutoff_rho: 336.0
+    cutoff_wfc: 84.0
+    filename: N.upf
+  O:
+    cutoff_rho: 368.0
+    cutoff_wfc: 92.0
+    filename: O.upf
+  F:
+    cutoff_rho: 336.0
+    cutoff_wfc: 84.0
+    filename: F.upf
+  Ne:
+    cutoff_rho: 352.0
+    cutoff_wfc: 88.0
+    filename: Ne.upf
+  Na:
+    cutoff_rho: 352.0
+    cutoff_wfc: 88.0
+    filename: Na.upf
+  Mg:
+    cutoff_rho: 336.0
+    cutoff_wfc: 84.0
+    filename: Mg.upf
+  Al:
+    cutoff_rho: 160.0
+    cutoff_wfc: 40.0
+    filename: Al.upf
+  Si:
+    cutoff_rho: 144.0
+    cutoff_wfc: 36.0
+    filename: Si.upf
+  P:
+    cutoff_rho: 176.0
+    cutoff_wfc: 44.0
+    filename: P.upf
+  S:
+    cutoff_rho: 208.0
+    cutoff_wfc: 52.0
+    filename: S.upf
+  Cl:
+    cutoff_rho: 232.0
+    cutoff_wfc: 58.0
+    filename: Cl.upf
+  Ar:
+    cutoff_rho: 264.0
+    cutoff_wfc: 66.0
+    filename: Ar.upf
+  K:
+    cutoff_rho: 296.0
+    cutoff_wfc: 74.0
+    filename: K.upf
+  Ca:
+    cutoff_rho: 272.0
+    cutoff_wfc: 68.0
+    filename: Ca.upf
+  Sc:
+    cutoff_rho: 312.0
+    cutoff_wfc: 78.0
+    filename: Sc.upf
+  Ti:
+    cutoff_rho: 336.0
+    cutoff_wfc: 84.0
+    filename: Ti.upf
+  V:
+    cutoff_rho: 336.0
+    cutoff_wfc: 84.0
+    filename: V.upf
+  Cr:
+    cutoff_rho: 480.0
+    cutoff_wfc: 120.0
+    filename: Cr.upf
+  Mn:
+    cutoff_rho: 520.0
+    cutoff_wfc: 130.0
+    filename: Mn.upf
+  Fe:
+    cutoff_rho: 472.0
+    cutoff_wfc: 118.0
+    filename: Fe.upf
+  Co:
+    cutoff_rho: 416.0
+    cutoff_wfc: 104.0
+    filename: Co.upf
+  Ni:
+    cutoff_rho: 416.0
+    cutoff_wfc: 104.0
+    filename: Ni.upf
+  Cu:
+    cutoff_rho: 416.0
+    cutoff_wfc: 104.0
+    filename: Cu.upf
+  Zn:
+    cutoff_rho: 336.0
+    cutoff_wfc: 84.0
+    filename: Zn.upf
+  Ga:
+    cutoff_rho: 456.0
+    cutoff_wfc: 114.0
+    filename: Ga.upf
+  Ge:
+    cutoff_rho: 496.0
+    cutoff_wfc: 124.0
+    filename: Ge.upf
+  As:
+    cutoff_rho: 416.0
+    cutoff_wfc: 104.0
+    filename: As.upf
+  Se:
+    cutoff_rho: 416.0
+    cutoff_wfc: 104.0
+    filename: Se.upf
+  Br:
+    cutoff_rho: 304.0
+    cutoff_wfc: 76.0
+    filename: Br.upf
+  Kr:
+    cutoff_rho: 208.0
+    cutoff_wfc: 52.0
+    filename: Kr.upf
+  Rb:
+    cutoff_rho: 184.0
+    cutoff_wfc: 46.0
+    filename: Rb.upf
+  Sr:
+    cutoff_rho: 256.0
+    cutoff_wfc: 64.0
+    filename: Sr.upf
+  Y:
+    cutoff_rho: 288.0
+    cutoff_wfc: 72.0
+    filename: Y.upf
+  Zr:
+    cutoff_rho: 264.0
+    cutoff_wfc: 66.0
+    filename: Zr.upf
+  Nb:
+    cutoff_rho: 328.0
+    cutoff_wfc: 82.0
+    filename: Nb.upf
+  Mo:
+    cutoff_rho: 320.0
+    cutoff_wfc: 80.0
+    filename: Mo.upf
+  Tc:
+    cutoff_rho: 336.0
+    cutoff_wfc: 84.0
+    filename: Tc.upf
+  Ru:
+    cutoff_rho: 336.0
+    cutoff_wfc: 84.0
+    filename: Ru.upf
+  Rh:
+    cutoff_rho: 352.0
+    cutoff_wfc: 88.0
+    filename: Rh.upf
+  Pd:
+    cutoff_rho: 328.0
+    cutoff_wfc: 82.0
+    filename: Pd.upf
+  Ag:
+    cutoff_rho: 328.0
+    cutoff_wfc: 82.0
+    filename: Ag.upf
+  Cd:
+    cutoff_rho: 480.0
+    cutoff_wfc: 120.0
+    filename: Cd.upf
+  In:
+    cutoff_rho: 328.0
+    cutoff_wfc: 82.0
+    filename: In.upf
+  Sn:
+    cutoff_rho: 408.0
+    cutoff_wfc: 102.0
+    filename: Sn.upf
+  Sb:
+    cutoff_rho: 400.0
+    cutoff_wfc: 100.0
+    filename: Sb.upf
+  Te:
+    cutoff_rho: 408.0
+    cutoff_wfc: 102.0
+    filename: Te.upf
+  I:
+    cutoff_rho: 304.0
+    cutoff_wfc: 76.0
+    filename: I.upf
+  Xe:
+    cutoff_rho: 272.0
+    cutoff_wfc: 68.0
+    filename: Xe.upf
+  Cs:
+    cutoff_rho: 200.0
+    cutoff_wfc: 50.0
+    filename: Cs.upf
+  Ba:
+    cutoff_rho: 176.0
+    cutoff_wfc: 44.0
+    filename: Ba.upf
+  La:
+    cutoff_rho: 440.0
+    cutoff_wfc: 110.0
+    filename: La.upf
+  Lu:
+    cutoff_rho: 400.0
+    cutoff_wfc: 100.0
+    filename: Lu.upf
+  Hf:
+    cutoff_rho: 528.0
+    cutoff_wfc: 132.0
+    filename: Hf.upf
+  Ta:
+    cutoff_rho: 528.0
+    cutoff_wfc: 132.0
+    filename: Ta.upf
+  W:
+    cutoff_rho: 296.0
+    cutoff_wfc: 74.0
+    filename: W.upf
+  Re:
+    cutoff_rho: 288.0
+    cutoff_wfc: 72.0
+    filename: Re.upf
+  Os:
+    cutoff_rho: 296.0
+    cutoff_wfc: 74.0
+    filename: Os.upf
+  Ir:
+    cutoff_rho: 272.0
+    cutoff_wfc: 68.0
+    filename: Ir.upf
+  Pt:
+    cutoff_rho: 336.0
+    cutoff_wfc: 84.0
+    filename: Pt.upf
+  Au:
+    cutoff_rho: 304.0
+    cutoff_wfc: 76.0
+    filename: Au.upf
+  Hg:
+    cutoff_rho: 352.0
+    cutoff_wfc: 88.0
+    filename: Hg.upf
+  Tl:
+    cutoff_rho: 352.0
+    cutoff_wfc: 88.0
+    filename: Tl.upf
+  Pb:
+    cutoff_rho: 352.0
+    cutoff_wfc: 88.0
+    filename: Pb.upf
+  Bi:
+    cutoff_rho: 352.0
+    cutoff_wfc: 88.0
+    filename: Bi.upf
+  Po:
+    cutoff_rho: 352.0
+    cutoff_wfc: 88.0
+    filename: Po.upf
+  Rn:
+    cutoff_rho: 288.0
+    cutoff_wfc: 72.0
+    filename: Rn.upf
