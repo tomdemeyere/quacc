@@ -5,6 +5,7 @@ from __future__ import annotations
 from importlib.util import find_spec
 from typing import TYPE_CHECKING
 
+import yaml
 from monty.dev import requires
 
 from quacc import QuaccDefault, __version__, get_settings
@@ -13,6 +14,9 @@ from quacc.utils.dicts import finalize_dict
 from quacc.utils.files import get_uri
 
 has_phonopy = bool(find_spec("phonopy"))
+
+if has_phonopy:
+    from phonopy.interface.phonopy_yaml import PhonopyYaml
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -71,14 +75,11 @@ def summarize_phonopy(
         "quacc_version": __version__,
     }
 
-    results = {
-        "results": {
-            "thermal_properties": phonon.get_thermal_properties_dict(),
-            "mesh_properties": phonon.get_mesh_dict(),
-            "total_dos": phonon.get_total_dos_dict(),
-            "force_constants": phonon.force_constants,
-        }
-    }
+    phonon_data = yaml.safe_load(
+        str(PhonopyYaml(settings={"force_constants": True}).set_phonon_info(phonon))
+    )
+
+    results = {"results": phonon_data}
 
     atoms_metadata = atoms_to_metadata(input_atoms)
     unsorted_task_doc = atoms_metadata | inputs | results | additional_fields
