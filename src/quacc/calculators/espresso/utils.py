@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import json
 from logging import getLogger
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
 
-from quacc.utils.dicts import Remove
+from quacc.utils.dicts import Remove, remove_dict_entries
 
 if TYPE_CHECKING:
     from typing import Any
@@ -331,6 +332,46 @@ def prepare_copy_files(parameters: dict[str, Any], binary: str = "pw") -> list[P
         to_copy.extend([Path("ahc_dir"), Path("matdyn.modes*")])
 
     return to_copy
+
+def prepare_hash(atoms: Atoms, calc_params, excluded_keys=None) -> str:
+    """
+    Function that prepares a hash for the calculation.
+
+    Parameters
+    ----------
+    atoms
+        The atoms object
+    calc_params
+        The calculation parameters
+    excluded_keys
+        The keys to exclude from the hash
+
+    Returns
+    -------
+    str
+        The hash string
+    """
+
+    excluded_keys = excluded_keys or []
+
+    atoms_copy = atoms.copy()
+
+    if "magmoms" in excluded_keys:
+        atoms_copy.set_initial_magnetic_moments([0] * len(atoms))
+    if "charges" in excluded_keys:
+        atoms_copy.set_initial_charges([0] * len(atoms))
+    if "cell" in excluded_keys:
+        atoms_copy.set_cell([0, 0, 0])
+    if "constraints" in excluded_keys:
+        atoms_copy.set_constraint()
+
+    for key in excluded_keys:
+        calc_params = remove_dict_entries(calc_params, remove_trigger=key)
+
+    encoded_dict = json.dumps(calc_params, sort_keys=True).encode()
+
+    hashed_atoms = get_atoms_id(atoms_copy)
+    
 
 
 def remove_conflicting_kpts_kspacing(

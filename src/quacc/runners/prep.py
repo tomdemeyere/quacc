@@ -11,7 +11,8 @@ from typing import TYPE_CHECKING
 from monty.shutil import gzip_dir
 
 from quacc import JobFailure, get_settings
-from quacc.utils.files import copy_decompress_files, make_unique_dir
+from quacc.atoms.core import get_atoms_id
+from quacc.utils.files import copy_decompress_files, make_dir
 
 if TYPE_CHECKING:
     from ase.atoms import Atoms
@@ -23,6 +24,7 @@ LOGGER = getLogger(__name__)
 
 def calc_setup(
     atoms: Atoms | None,
+    job_name: str | None,
     copy_files: SourceDirectory | dict[SourceDirectory, Filenames] | None = None,
 ) -> tuple[Path, Path]:
     """
@@ -55,7 +57,16 @@ def calc_setup(
     # Create a tmpdir for the calculation
     settings = get_settings()
     tmpdir_base = settings.SCRATCH_DIR or settings.RESULTS_DIR
-    tmpdir = make_unique_dir(base_path=tmpdir_base, prefix="tmp-quacc-")
+
+    atoms_hash = get_atoms_id(atoms) if atoms is not None else "no-atoms"
+
+    job_name = job_name.lower().replace(" ", "_") if job_name else "unknown_job"
+
+    tmpdir = make_dir(
+        f"tmp-{job_name}-{atoms_hash}",
+        base_path=tmpdir_base,
+        unique=not settings.RESTART_MODE,
+    )
     LOGGER.info(f"Calculation will run at {tmpdir}")
 
     # Set the calculator's directory
@@ -140,7 +151,7 @@ def calc_cleanup(
 
 def terminate(tmpdir: Path | str, exception: Exception) -> None:
     """
-    Terminate a calculation and move files to a failed directory.
+    Terminate a calculation and raise a JobFailure exception.
 
     Parameters
     ----------
@@ -161,16 +172,8 @@ def terminate(tmpdir: Path | str, exception: Exception) -> None:
     """
     tmpdir = Path(tmpdir)
     settings = get_settings()
-    job_failed_dir = tmpdir.with_name(tmpdir.name.replace("tmp-", "failed-"))
-    tmpdir.rename(job_failed_dir)
 
-    msg = f"Calculation failed! Files stored at {job_failed_dir}"
+    msg = f"Calculation failed! Files stored at {tmpdir}"
     LOGGER.info(msg)
 
-    if os.name != "nt" and settings.SCRATCH_DIR:
-        old_symlink_path = settings.RESULTS_DIR / f"symlink-{tmpdir.name}"
-        symlink_path = settings.RESULTS_DIR / f"symlink-{job_failed_dir.name}"
-        old_symlink_path.unlink(missing_ok=True)
-        symlink_path.symlink_to(job_failed_dir, target_is_directory=True)
-
-    raise JobFailure(job_failed_dir, message=msg, parent_error=exception) from exception
+    raise JobFailure(tmpdir, message=msg, parent_error=exception) from exception

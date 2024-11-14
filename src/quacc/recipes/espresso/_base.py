@@ -16,6 +16,7 @@ from quacc.calculators.espresso.espresso import (
 )
 from quacc.calculators.espresso.utils import (
     prepare_copy_files,
+    prepare_hash,
     remove_conflicting_kpts_kspacing,
 )
 from quacc.runners.ase import Runner
@@ -82,11 +83,36 @@ def run_and_summarize(
         calc_swaps=calc_swaps,
     )
 
+    default_excluded_keys = [
+        'title',
+        'verbosity',
+        'restart_mode',
+        'startingpot',
+        'startingwfc',
+        'wf_collect',
+        'iprint',
+        'outdir',
+        'wfcdir',
+        'prefix',
+        'disk_io',
+        'pseudo_dir',
+        'max_seconds',
+        'lkpoint_dir',
+        'starting_charge',
+        'starting_spin_angle',
+        'report'
+        'starting_magnetization',
+    ]
+
     updated_copy_files = prepare_copy(
         copy_files=copy_files,
         calc_params=calc.user_calc_params,
         binary=calc.template.binary,
     )
+
+    excluded_keys = excluded_keys or default_excluded_keys
+
+    hash = prepare_hash(atoms, calc.user_calc_params, excluded_keys=excluded_keys)
 
     geom_file = template.outputname if template and template.binary == "pw" else None
 

@@ -4,6 +4,7 @@ Base class for runners.
 
 from __future__ import annotations
 
+import inspect
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -29,6 +30,7 @@ class BaseRunner:
     """
 
     atoms: Atoms | None = None
+    job_name: str | None = None
     copy_files: SourceDirectory | dict[SourceDirectory, Filenames] | None = None
 
     def setup(self) -> None:
@@ -40,7 +42,7 @@ class BaseRunner:
         None
         """
         self.tmpdir, self.job_results_dir = calc_setup(
-            self.atoms, copy_files=self.copy_files
+            self.atoms, self.job_name, copy_files=self.copy_files
         )
 
     def cleanup(self) -> None:

@@ -98,6 +98,16 @@ class QuaccSettings(BaseSettings):
             """
         ),
     )
+    RESTART_MODE: bool = Field(
+        False,
+        description=(
+            """
+            Whether to run the calculation in restart mode. In this mode, temporary directories are
+            created based on a hash of the atoms object and the name of the job. This allows for
+            calculations to use the same directory. This is useful for MD simulations, for example.
+            """
+        ),
+    )
     GZIP_FILES: bool = Field(
         True, description="Whether generated files should be gzip'd."
     )

@@ -9,7 +9,6 @@ from copy import deepcopy
 from datetime import datetime, timezone
 from logging import getLogger
 from pathlib import Path
-from random import randint
 from shutil import copy
 from typing import TYPE_CHECKING
 
@@ -156,31 +155,34 @@ def copy_decompress_files(
                 decompress_dir(destination_filepath)
 
 
-def make_unique_dir(
-    base_path: Path | str | None = None, prefix: str | None = None
+def make_dir(
+    name: str, base_path: Path | str | None = None, unique: bool = True
 ) -> Path:
     """
-    Make a directory with a unique name.
+    Make a directory with a given name and optional base path.
 
     Parameters
     ----------
+    name
+        Prefix to add to the directory name.
     base_path
         Path to the base directory.
-    prefix
-        Prefix to add to the directory name.
 
     Returns
     -------
     Path
         Path to the job directory.
     """
-    time_now = datetime.now(timezone.utc).strftime("%Y-%m-%d-%H-%M-%S-%f")
-    if prefix is None:
-        prefix = ""
-    job_dir = Path(f"{prefix}{time_now}-{randint(10000, 99999)}")
+    if unique is True:
+        suffix = datetime.now(timezone.utc).strftime("%Y-%m-%d-%H-%M-%S-%f")
+        job_dir = Path(f"{name}-{suffix}")
+    else:
+        job_dir = Path(name)
+
     if base_path:
         job_dir = Path(base_path, job_dir)
-    job_dir.mkdir(parents=True)
+
+    job_dir.mkdir(exist_ok=True, parents=True)
 
     return job_dir
 
