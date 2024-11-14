@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 LOGGER = getLogger(__name__)
 
 
-def _encode_atoms(atoms: Atoms) -> _Hash:
+def encode_atoms(atoms: Atoms) -> _Hash:
     """
     Returns a byte encoding for the Atoms object. Note: The .info dict and calculator is excluded.
 
@@ -66,7 +66,7 @@ def get_atoms_id(atoms: Atoms) -> str:
     str
         Unique identifier for the Atoms object in the form of a string
     """
-    return _encode_atoms(atoms).hexdigest()
+    return encode_atoms(atoms).hexdigest()
 
 
 def get_atoms_id_parsl(atoms: Atoms, output_ref: bool = False) -> bytes:  # noqa: ARG001
@@ -85,7 +85,7 @@ def get_atoms_id_parsl(atoms: Atoms, output_ref: bool = False) -> bytes:  # noqa
     bytes
         Unique identifier for the Atoms object in the form of bytes
     """
-    return _encode_atoms(atoms).digest()
+    return encode_atoms(atoms).digest()
 
 
 def check_is_metal(atoms: Atoms) -> bool:

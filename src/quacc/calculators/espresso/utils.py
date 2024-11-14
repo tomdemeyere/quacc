@@ -1,15 +1,18 @@
 from __future__ import annotations
 
 import json
+from hashlib import md5
 from logging import getLogger
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
 
+from quacc.atoms.core import encode_atoms
 from quacc.utils.dicts import Remove, remove_dict_entries
 
 if TYPE_CHECKING:
+    from collections.abc import MutableMapping
     from typing import Any
 
     from ase.atoms import Atoms
@@ -333,7 +336,12 @@ def prepare_copy_files(parameters: dict[str, Any], binary: str = "pw") -> list[P
 
     return to_copy
 
-def prepare_hash(atoms: Atoms, calc_params, excluded_keys=None) -> str:
+
+def prepare_hash(
+    atoms: Atoms,
+    calc_params: dict[str, Any] | MutableMapping[str, Any],
+    excluded_keys=None,
+) -> str:
     """
     Function that prepares a hash for the calculation.
 
@@ -355,6 +363,7 @@ def prepare_hash(atoms: Atoms, calc_params, excluded_keys=None) -> str:
     excluded_keys = excluded_keys or []
 
     atoms_copy = atoms.copy()
+    calc_params = calc_params.copy()
 
     if "magmoms" in excluded_keys:
         atoms_copy.set_initial_magnetic_moments([0] * len(atoms))
@@ -370,8 +379,13 @@ def prepare_hash(atoms: Atoms, calc_params, excluded_keys=None) -> str:
 
     encoded_dict = json.dumps(calc_params, sort_keys=True).encode()
 
-    hashed_atoms = get_atoms_id(atoms_copy)
-    
+    hashed_atoms = encode_atoms(atoms_copy)
+
+    hashed = md5(usedforsecurity=False)
+    hashed.update(hashed_atoms.digest())
+    hashed.update(encoded_dict)
+
+    return hashed.hexdigest()
 
 
 def remove_conflicting_kpts_kspacing(

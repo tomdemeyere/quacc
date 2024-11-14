@@ -30,10 +30,9 @@ class BaseRunner:
     """
 
     atoms: Atoms | None = None
-    job_name: str | None = None
     copy_files: SourceDirectory | dict[SourceDirectory, Filenames] | None = None
 
-    def setup(self) -> None:
+    def setup(self, hash_suffix: str | None = None) -> None:
         """
         Perform setup operations on the runtime directory.
 
@@ -42,7 +41,7 @@ class BaseRunner:
         None
         """
         self.tmpdir, self.job_results_dir = calc_setup(
-            self.atoms, self.job_name, copy_files=self.copy_files
+            self.atoms, hash_suffix, copy_files=self.copy_files
         )
 
     def cleanup(self) -> None:

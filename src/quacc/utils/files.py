@@ -156,28 +156,30 @@ def copy_decompress_files(
 
 
 def make_dir(
-    name: str, base_path: Path | str | None = None, unique: bool = True
+    prefix: str, base_path: Path | str | None = None, suffix: str | None = None
 ) -> Path:
     """
     Make a directory with a given name and optional base path.
 
     Parameters
     ----------
-    name
+    prefix
         Prefix to add to the directory name.
     base_path
         Path to the base directory.
+    suffix
+        Suffix to add to the directory name. If None, the current date and time will be
+        used.
 
     Returns
     -------
     Path
         Path to the job directory.
     """
-    if unique is True:
+    if suffix is None:
         suffix = datetime.now(timezone.utc).strftime("%Y-%m-%d-%H-%M-%S-%f")
-        job_dir = Path(f"{name}-{suffix}")
-    else:
-        job_dir = Path(name)
+
+    job_dir = Path(f"{prefix}-{suffix}")
 
     if base_path:
         job_dir = Path(base_path, job_dir)

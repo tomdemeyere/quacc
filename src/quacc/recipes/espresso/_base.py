@@ -43,6 +43,7 @@ def run_and_summarize(
         | dict[SourceDirectory, Filenames]
         | None
     ) = None,
+    excluded_properties: list[str] | None = None,
 ) -> RunSchema:
     """
     Base function to carry out espresso recipes.
@@ -67,6 +68,8 @@ def run_and_summarize(
         Any additional fields to supply to the summarizer.
     copy_files
         Files to copy (and decompress) from source to the runtime directory.
+    excluded_properties
+        Properties to exclude in the hash building process.
 
     Returns
     -------
@@ -84,24 +87,23 @@ def run_and_summarize(
     )
 
     default_excluded_keys = [
-        'title',
-        'verbosity',
-        'restart_mode',
-        'startingpot',
-        'startingwfc',
-        'wf_collect',
-        'iprint',
-        'outdir',
-        'wfcdir',
-        'prefix',
-        'disk_io',
-        'pseudo_dir',
-        'max_seconds',
-        'lkpoint_dir',
-        'starting_charge',
-        'starting_spin_angle',
-        'report'
-        'starting_magnetization',
+        "title",
+        "verbosity",
+        "restart_mode",
+        "startingpot",
+        "startingwfc",
+        "wf_collect",
+        "iprint",
+        "outdir",
+        "wfcdir",
+        "prefix",
+        "disk_io",
+        "pseudo_dir",
+        "max_seconds",
+        "lkpoint_dir",
+        "starting_charge",
+        "starting_spin_angle",
+        "report" "starting_magnetization",
     ]
 
     updated_copy_files = prepare_copy(
@@ -110,9 +112,7 @@ def run_and_summarize(
         binary=calc.template.binary,
     )
 
-    excluded_keys = excluded_keys or default_excluded_keys
-
-    hash = prepare_hash(atoms, calc.user_calc_params, excluded_keys=excluded_keys)
+    hash = prepare_hash(atoms, calc.user_calc_params, excluded_keys=excluded_properties)
 
     geom_file = template.outputname if template and template.binary == "pw" else None
 

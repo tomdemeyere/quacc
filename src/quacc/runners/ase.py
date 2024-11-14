@@ -60,7 +60,7 @@ class Runner(BaseRunner):
         self,
         atoms: Atoms,
         calculator: Calculator,
-        job_name: str | None = None,
+        hash_suffix: str | None = None,
         copy_files: SourceDirectory | dict[SourceDirectory, Filenames] | None = None,
     ) -> None:
         """
@@ -82,8 +82,7 @@ class Runner(BaseRunner):
         self.atoms = copy_atoms(atoms)
         self.atoms.calc = calculator
         self.copy_files = copy_files
-        self.job_name = job_name
-        self.setup()
+        self.setup(hash_suffix=hash_suffix)
 
     def run_calc(
         self, geom_file: str | None = None, properties: list[str] | None = None

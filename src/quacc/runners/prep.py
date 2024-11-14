@@ -11,7 +11,6 @@ from typing import TYPE_CHECKING
 from monty.shutil import gzip_dir
 
 from quacc import JobFailure, get_settings
-from quacc.atoms.core import get_atoms_id
 from quacc.utils.files import copy_decompress_files, make_dir
 
 if TYPE_CHECKING:
@@ -24,7 +23,7 @@ LOGGER = getLogger(__name__)
 
 def calc_setup(
     atoms: Atoms | None,
-    job_name: str | None,
+    hash_suffix: str | None = None,
     copy_files: SourceDirectory | dict[SourceDirectory, Filenames] | None = None,
 ) -> tuple[Path, Path]:
     """
@@ -37,6 +36,9 @@ def calc_setup(
     atoms
         The Atoms object to run the calculation on. Must have a calculator
         attached. If None, no modifications to the calculator's directory will be made.
+    hash_suffix
+        A suffix to add to the tmpdir name. This is useful for distinguishing between
+        different calculations that use the same atoms object.
     copy_files
         Files to copy (and decompress) from source to the runtime directory.
 
@@ -58,14 +60,10 @@ def calc_setup(
     settings = get_settings()
     tmpdir_base = settings.SCRATCH_DIR or settings.RESULTS_DIR
 
-    atoms_hash = get_atoms_id(atoms) if atoms is not None else "no-atoms"
-
-    job_name = job_name.lower().replace(" ", "_") if job_name else "unknown_job"
-
     tmpdir = make_dir(
-        f"tmp-{job_name}-{atoms_hash}",
+        "tmp-quacc",
         base_path=tmpdir_base,
-        unique=not settings.RESTART_MODE,
+        suffix=hash_suffix if settings.RESTART_MODE else None,
     )
     LOGGER.info(f"Calculation will run at {tmpdir}")
 
@@ -171,7 +169,6 @@ def terminate(tmpdir: Path | str, exception: Exception) -> None:
         metadata.
     """
     tmpdir = Path(tmpdir)
-    settings = get_settings()
 
     msg = f"Calculation failed! Files stored at {tmpdir}"
     LOGGER.info(msg)
