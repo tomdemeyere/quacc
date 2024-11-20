@@ -9,6 +9,7 @@ from copy import deepcopy
 from datetime import datetime, timezone
 from logging import getLogger
 from pathlib import Path
+from random import randint
 from shutil import copy
 from typing import TYPE_CHECKING
 
@@ -168,8 +169,7 @@ def make_dir(
     base_path
         Path to the base directory.
     suffix
-        Suffix to add to the directory name. If None, the current date and time will be
-        used.
+        Suffix to add to the directory name. If None, the current date and time will be used.
 
     Returns
     -------
@@ -177,7 +177,7 @@ def make_dir(
         Path to the job directory.
     """
     if suffix is None:
-        suffix = datetime.now(timezone.utc).strftime("%Y-%m-%d-%H-%M-%S-%f")
+        suffix = f'{datetime.now(timezone.utc).strftime("%Y-%m-%d-%H-%M-%S-%f")}-{randint(10000, 99999)}'
 
     job_dir = Path(f"{prefix}-{suffix}")
 

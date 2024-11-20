@@ -144,6 +144,37 @@ def remove_dict_entries(
     )
 
 
+def remove_dict_keys(
+    start_dict: MutableMapping[str, Any], remove_trigger: Any
+) -> MutableMapping[str, Any]:
+    """
+    For a given dictionary, recursively remove all keys that are the `remove_trigger`.
+
+    Parameters
+    ----------
+    start_dict
+        Dictionary to clean
+    remove_trigger
+        Value to that triggers removal of the entry
+
+    Returns
+    -------
+    dict
+        Cleaned dictionary
+    """
+    if isinstance(start_dict, MutableMapping):
+        return {
+            k: remove_dict_keys(v, remove_trigger)
+            for k, v in start_dict.items()
+            if k is not remove_trigger
+        }
+    return (
+        [remove_dict_entries(v, remove_trigger) for v in start_dict]
+        if isinstance(start_dict, list)
+        else start_dict
+    )
+
+
 def sort_dict(start_dict: MutableMapping[str, Any]) -> MutableMapping[str, Any]:
     """
     For a given dictionary, recursively sort all entries alphabetically by key.
