@@ -112,14 +112,14 @@ def run_and_summarize(
         binary=calc.template.binary,
     )
 
-    hash = prepare_hash(
+    hash_ = prepare_hash(
         atoms, calc.user_calc_params, excluded_keys=default_excluded_keys
     )
 
     geom_file = template.outputname if template and template.binary == "pw" else None
 
     final_atoms = Runner(
-        atoms, calc, hash_suffix=hash, copy_files=updated_copy_files
+        atoms, calc, hash_suffix=hash_, copy_files=updated_copy_files
     ).run_calc(geom_file=geom_file)
 
     return Summarize(move_magmoms=True, additional_fields=additional_fields).run(

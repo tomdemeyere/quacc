@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from quacc.atoms.core import encode_atoms
-from quacc.utils.dicts import Remove, remove_dict_entries
+from quacc.utils.dicts import Remove, remove_dict_keys
 
 if TYPE_CHECKING:
     from collections.abc import MutableMapping
@@ -375,7 +375,7 @@ def prepare_hash(
         atoms_copy.set_constraint()
 
     for key in excluded_keys:
-        calc_params = remove_dict_entries(calc_params, remove_trigger=key)
+        calc_params = remove_dict_keys(calc_params, remove_trigger=key)
 
     encoded_dict = json.dumps(calc_params, sort_keys=True).encode()
 
