@@ -43,7 +43,6 @@ def run_and_summarize(
         | dict[SourceDirectory, Filenames]
         | None
     ) = None,
-    excluded_properties: list[str] | None = None,
 ) -> RunSchema:
     """
     Base function to carry out espresso recipes.
@@ -103,7 +102,8 @@ def run_and_summarize(
         "lkpoint_dir",
         "starting_charge",
         "starting_spin_angle",
-        "report" "starting_magnetization",
+        "report",
+        "starting_magnetization",
     ]
 
     updated_copy_files = prepare_copy(

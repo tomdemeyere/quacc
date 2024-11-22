@@ -166,10 +166,10 @@ def remove_dict_keys(
         return {
             k: remove_dict_keys(v, remove_trigger)
             for k, v in start_dict.items()
-            if k is not remove_trigger
+            if k != remove_trigger
         }
     return (
-        [remove_dict_entries(v, remove_trigger) for v in start_dict]
+        [remove_dict_keys(v, remove_trigger) for v in start_dict]
         if isinstance(start_dict, list)
         else start_dict
     )

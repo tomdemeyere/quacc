@@ -364,7 +364,7 @@ def prepare_hash(
 
     atoms_copy = atoms.copy()
     calc_params = calc_params.copy()
-
+    print(calc_params)
     if "magmoms" in excluded_keys:
         atoms_copy.set_initial_magnetic_moments([0] * len(atoms))
     if "charges" in excluded_keys:
@@ -376,7 +376,8 @@ def prepare_hash(
 
     for key in excluded_keys:
         calc_params = remove_dict_keys(calc_params, remove_trigger=key)
-
+        # print(calc_params)
+    print(calc_params)
     encoded_dict = json.dumps(calc_params, sort_keys=True).encode()
 
     hashed_atoms = encode_atoms(atoms_copy)
