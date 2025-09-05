@@ -64,7 +64,7 @@ class GenericRunner(BaseRunner):
                 if path is not None
             }
 
-            cmd_results = run(
+            return run(
                 self.command,
                 cwd=self.tmpdir,
                 shell=False,
@@ -74,6 +74,3 @@ class GenericRunner(BaseRunner):
                 stderr=files.get("fd_err", PIPE),
                 text=True,
             )
-
-        self.cleanup()
-        return cmd_results

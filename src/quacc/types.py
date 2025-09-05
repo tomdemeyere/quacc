@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from datetime import datetime
     from pathlib import Path
-    from typing import Any, Literal
+    from typing import Any, Literal, Required
 
     from ase.atoms import Atoms
     from ase.md.md import MolecularDynamics
@@ -39,6 +39,30 @@ if TYPE_CHECKING:
     from pymatgen.core.periodic_table import Element
     from pymatgen.core.structure import Structure
     from pymatgen.entries.computed_entries import ComputedEntry
+    from pymatgen.io.lobster.inputs import LobsterIn
+    from pymatgen.io.lobster.outputs import (
+        BWDF,
+        CHARGE,
+        CHARGE_LCFO,
+        COBICAR,
+        COHPCAR,
+        COOPCAR,
+        DOSCAR,
+        DOSCAR_LCFO,
+        GROSSPOP,
+        GROSSPOP_LCFO,
+        ICOBILIST,
+        ICOHPLIST,
+        ICOOPLIST,
+        POLARIZATION,
+        BandOverlaps,
+        Fatband,
+        LobsterMatrices,
+        LobsterOut,
+        MadelungEnergies,
+        NcICOBILIST,
+        SitePotential,
+    )
     from pymatgen.io.vasp.inputs import Incar, Kpoints, Poscar, Potcar
     from typing_extensions import NotRequired, TypedDict
 
@@ -586,6 +610,48 @@ if TYPE_CHECKING:
         dir_name: str
         phonopy_metadata: PhonopyMetadata
         results: PhononResults
+        quacc_version: str
+
+    # --------- Schema (Lobster) type hints ---------
+
+    class LobsterMetadata(TypedDict):
+        """Type hint associated with LobsterSchema."""
+
+        version: str
+
+    class LobsterResults(TypedDict, total=False):
+        """Type hint associated with [quacc.schemas.lobster.summarize_lobster][]"""
+
+        lobster_out: Required[LobsterOut]
+        charge: CHARGE
+        charge_lcfo: CHARGE_LCFO
+        polarization: POLARIZATION
+        site_potential: SitePotential
+        band_overlaps: BandOverlaps
+        bwdf: BWDF
+        doscar: DOSCAR
+        doscar_lcfo: DOSCAR_LCFO
+        fatband: Fatband
+        grosspop: GROSSPOP
+        grosspop_lcfo: GROSSPOP_LCFO
+        madelung_energies: MadelungEnergies
+        lobster_matrices: LobsterMatrices
+        cobicar: COBICAR
+        cohpcar: COHPCAR
+        coopcar: COOPCAR
+        icobilist: ICOBILIST
+        icohplist: ICOHPLIST
+        icooplist: ICOOPLIST
+        nc_icobilist: NcICOBILIST
+
+    class LobsterSchema(TypedDict):
+        """Type hint associated with [quacc.schemas.lobster.summarize_lobster][]"""
+
+        parameters: dict[str, Any] | None
+        nid: str
+        dir_name: str
+        lobster_metadata: LobsterMetadata
+        results: LobsterResults
         quacc_version: str
 
     # ----------- Schema (VASP) type hints -----------

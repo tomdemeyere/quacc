@@ -354,6 +354,19 @@ class QuaccSettings(BaseSettings):
     )
 
     # ---------------------------
+    # LOBSTER Settings
+    # ---------------------------
+    LOBSTER_CMD: str = Field(
+        "lobster",
+        description=(
+            """
+            Path to the LOBSTER executable. This must be the full, absolute path
+            for parallel calculations to work.
+            """
+        ),
+    )
+
+    # ---------------------------
     # Q-Chem Settings
     # ---------------------------
 
